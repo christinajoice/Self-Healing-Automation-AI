@@ -1,10 +1,11 @@
 # backend/main.py
 import sys
+import os
 import asyncio
 import shutil
 import csv
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -24,6 +25,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from core.execution.executor import TestExecutor
+from dotenv import load_dotenv
+load_dotenv()
 
 # --------------------------------------------------
 # 🔹 Execution Status Store (IN-MEMORY)
@@ -39,13 +42,13 @@ def update_status(
     error: Optional[str] = None,
 ):
     execution_status[execution_id] = {
+        **execution_status.get(execution_id, {}),
         "execution_id": execution_id,
         "state": state,
         "message": message,
         "progress": progress,
         "error": error,
-        "updated_at": datetime.utcnow().isoformat(),
-        **execution_status.get(execution_id, {}),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -75,7 +78,8 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 # --------------------------------------------------
 # 🔹 Executor (SINGLE INSTANCE)
 # --------------------------------------------------
-executor = TestExecutor(headless=False)
+HEADLESS = os.getenv("BROWSER_HEADLESS", "true").lower() != "false"
+executor = TestExecutor(headless=HEADLESS)
 
 # --------------------------------------------------
 # 🔹 Health Check
@@ -109,7 +113,7 @@ async def upload_testcase(
     # 🔹 Save CSV (UNCHANGED)
     # --------------------------------------------------
     safe_filename = Path(file.filename).name
-    file_path = UPLOAD_DIR / file.filename
+    file_path = UPLOAD_DIR / safe_filename
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     try:
         with file_path.open("wb") as buffer:
@@ -207,7 +211,7 @@ def get_reports():
     import glob
     import json
 
-    report_files = glob.glob(str(BASE_DIR / "reports" / "*.json"))
+    report_files = glob.glob(str(Path("reports") / "*.json"))
     reports = []
 
     for f in report_files:

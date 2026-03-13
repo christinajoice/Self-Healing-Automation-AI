@@ -1,5 +1,6 @@
 import json
 import os
+import html as html_escape_lib
 from datetime import datetime
 from pathlib import Path
 
@@ -57,7 +58,7 @@ class ReportGenerator:
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
 
-        print(f"📄 JSON report saved: {filename}")
+        print(f"[REPORT] JSON report saved: {filename}")
         return filename
 
     # -----------------------------
@@ -95,9 +96,9 @@ class ReportGenerator:
             if testcase.get("failed_step"):
                 html_content += f"""
                 <p><b>Failed Step:</b></p>
-                <pre>{json.dumps(testcase["failed_step"], indent=2)}</pre>
+                <pre>{html_escape_lib.escape(json.dumps(testcase["failed_step"], indent=2))}</pre>
                 <p><b>Error:</b></p>
-                <pre>{testcase.get("error")}</pre>
+                <pre>{html_escape_lib.escape(str(testcase.get("error", "")))}</pre>
                 """
 
         html_content += "</body></html>"
@@ -105,5 +106,5 @@ class ReportGenerator:
         with open(filename, "w", encoding="utf-8") as f:
             f.write(html_content)
 
-        print(f"📄 HTML report saved: {filename}")
+        print(f"[REPORT] HTML report saved: {filename}")
         return filename

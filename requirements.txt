@@ -9,3 +9,4 @@ rich
 pytest
 allure-pytest
 python-multipart
+requests

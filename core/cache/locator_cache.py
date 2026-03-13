@@ -1,13 +1,15 @@
 import json
 import os
+from pathlib import Path
 
-CACHE_FILE = "core/cache/locators.json"
+CACHE_FILE = Path(__file__).parent / "locators.json"
 
 
 class LocatorCache:
     def __init__(self):
         self.cache_file = CACHE_FILE
-        if not os.path.exists(self.cache_file):
+        self.cache_file.parent.mkdir(parents=True, exist_ok=True)
+        if not self.cache_file.exists():
             with open(self.cache_file, "w") as f:
                 json.dump({}, f)
         self._load_cache()

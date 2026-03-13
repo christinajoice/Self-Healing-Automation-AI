@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python test_dom_scanner.py)"
+      "Bash(python test_dom_scanner.py)",
+      "Bash(python3 -c \"import sys; sys.path.insert\\(0, ''/c/Users/christina.joice/OneDrive - HiLabs Inc/Documents/Self-Healing-Automation-AI''\\); from core.discovery.locator_discovery import LocatorDiscovery; print\\(''OK''\\)\")"
     ]
   }
 }

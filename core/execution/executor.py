@@ -1,7 +1,7 @@
 # test_executor.py
 from playwright.async_api import async_playwright, TimeoutError
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 import hashlib
@@ -64,7 +64,7 @@ class TestExecutor:
         results = {
             "testcase_id": testcase["testcase_id"],
             "status": "PASS",
-            "start_time": datetime.utcnow().isoformat(),
+            "start_time": datetime.now(timezone.utc).isoformat(),
             "end_time": None,
             "steps": [],
             "error": None,
@@ -72,14 +72,17 @@ class TestExecutor:
 
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=self.headless)
-                context = await browser.new_context()
+                browser = await p.chromium.launch(
+                    headless=self.headless,
+                    args=["--ignore-certificate-errors", "--disable-web-security"],
+                )
+                context = await browser.new_context(ignore_https_errors=True)
                 page = await context.new_page()
 
                 for idx, step in enumerate(testcase["steps"], start=1):
                     step_id = step.get("id") or self._step_fingerprint(step)
                     if step_id in self._executed_steps:
-                        print(f"⏭ Step {step_id} already executed, skipping")
+                        print(f"[SKIP] Step {step_id} already executed, skipping")
                         continue
 
                     fingerprint = self._step_fingerprint(step)
@@ -99,7 +102,7 @@ class TestExecutor:
                         "status": "PASS",
                         "healed": False,
                         "error": None,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     }
 
                     try:
@@ -126,12 +129,13 @@ class TestExecutor:
                         step_result["error"] = str(e)
                         self._record_learning(
                             fingerprint,
-                            healed=True,
+                            healed=False,
                             soft_fail=False,
                             passed=False,
                         )
                         results["status"] = "FAIL"
                         results["error"] = str(e)
+                        results["failed_step"] = step_result
 
                     results["steps"].append(step_result)
 
@@ -141,7 +145,7 @@ class TestExecutor:
             results["status"] = "FAIL"
             results["error"] = str(e)
 
-        results["end_time"] = datetime.utcnow().isoformat()
+        results["end_time"] = datetime.now(timezone.utc).isoformat()
         self.reporter.generate(results)
         self._save_learning_store()
 
@@ -173,6 +177,7 @@ class TestExecutor:
         intent = IntentClassifier.classify(action, target, data)
 
         locator_meta = None
+        locator = None
 
         for attempt in range(1, MAX_RETRIES + 1):
             try:
@@ -188,8 +193,30 @@ class TestExecutor:
                 pre_dom = await page.content()
 
                 if action == "open":
-                    await page.goto(base_url)
-                    await page.wait_for_load_state("domcontentloaded")
+                    # URL resolution priority:
+                    # 1. data column has a full URL → use it (e.g., open,login page,https://app.com/login)
+                    # 2. target has a full URL      → use target directly
+                    # 3. target is a path (/login)  → base_url + path
+                    # 4. anything else              → use base_url from the form (original behavior)
+                    data_val = (data or "").strip()
+                    if data_val.startswith(("http://", "https://")):
+                        nav_url = data_val
+                    elif target and target.strip().startswith(("http://", "https://")):
+                        nav_url = target.strip()
+                    elif target and target.strip().startswith("/"):
+                        nav_url = base_url.rstrip("/") + target.strip()
+                    else:
+                        nav_url = base_url
+                    print(f"[OPEN] Navigating to: {nav_url}")
+                    try:
+                        # First attempt: fast load (works for server-rendered apps)
+                        await page.goto(nav_url, timeout=30000, wait_until="domcontentloaded")
+                        await page.wait_for_load_state("domcontentloaded", timeout=15000)
+                    except Exception:
+                        # Second attempt: networkidle (needed for SPAs like React/Angular/Vue)
+                        print(f"[OPEN] domcontentloaded failed, retrying with networkidle...")
+                        await page.goto(nav_url, timeout=45000, wait_until="networkidle")
+                    print(f"[OPEN] Page loaded. Title: {await page.title()}")
                     return healed
 
                 elif action == "click":
@@ -204,7 +231,16 @@ class TestExecutor:
 
                 elif action == "enter":
                     await locator.wait_for(state="visible", timeout=5000)
-                    value = credentials.get(data, data) if credentials else data
+                    if credentials:
+                        key = (data or "").strip().lower()
+                        value = (
+                            credentials.get(data)
+                            or credentials.get(key)
+                            or credentials.get(key.split()[0] if key else "", data)
+                            or data
+                        )
+                    else:
+                        value = data
                     await locator.fill(value)
 
                 elif action == "verify":

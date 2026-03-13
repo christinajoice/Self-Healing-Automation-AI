@@ -1,8 +1,9 @@
 # locatordiscovery.py
 from core.cache.locator_cache import LocatorCache
 from core.discovery.dom_scanner import DOMScanner
+from core.ai.ai_locator_suggester import AILocatorSuggester
 from playwright.async_api import TimeoutError
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -12,6 +13,7 @@ class LocatorDiscovery:
         self.app_url = app_url
         self.cache = LocatorCache()
         self.scanner = DOMScanner(page)
+        self.ai = AILocatorSuggester(page)
 
     async def resolve(self, semantic_name: str, validate_visible: bool = True) -> dict:
         """
@@ -22,6 +24,12 @@ class LocatorDiscovery:
         4. Return healing-safe locator dict
         """
         await self.page.wait_for_load_state("domcontentloaded")
+        # SPAs (React/Angular/Vue) inject inputs after JS runs.
+        # Wait for at least one interactive element before scanning.
+        try:
+            await self.page.wait_for_selector("input, button", timeout=8000)
+        except Exception:
+            pass
 
         raw_candidates = self.cache.get_all(self.app_url, semantic_name) or []
         candidates = [
@@ -47,30 +55,30 @@ class LocatorDiscovery:
 
                 # Success → update metadata
                 candidate["failures"] = 0
-                candidate["last_used"] = datetime.utcnow().isoformat()
+                candidate["last_used"] = datetime.now(timezone.utc).isoformat()
                 self.cache.set(self.app_url, semantic_name, candidates)
-                print(f"✅ Using cached locator for '{semantic_name}': {candidate}")
+                print(f"[CACHED] Using cached locator for '{semantic_name}': {candidate}")
                 return candidate
 
             except TimeoutError:
-                candidate["failures"] += 1
-                candidate["confidence"] *= 0.9
-                print(f"⚠️ Cached locator failed: {candidate['strategy']} → trying next")
+                candidate["failures"] = candidate.get("failures", 0) + 1
+                candidate["confidence"] = candidate.get("confidence", 1.0) * 0.9
+                print(f"[WARN] Cached locator failed: {candidate['strategy']} -> trying next")
             except ValueError as ve:
-                print(f"⚠️ Cached locator rejected: {candidate} → {ve}")
+                print(f"[WARN] Cached locator rejected: {candidate} -> {ve}")
 
         # --- No cached locator worked → try rediscovery ---
         new_locator = await self._discover_and_cache(semantic_name)
         if new_locator:
             candidates.append(new_locator)
             self.cache.set(self.app_url, semantic_name, candidates)
-            print(f"🔍 Rediscovered locator for '{semantic_name}': {new_locator}")
+            print(f"[REDISCOVERED] locator for '{semantic_name}': {new_locator}")
             return new_locator
 
         # --- Fallback if rediscovery fails ---
         if candidates:
             fallback = sorted(candidates, key=lambda x: -x.get("confidence", 0.0))[0]
-            print(f"⚠️ Could not rediscover '{semantic_name}', using cached locator anyway")
+            print(f"[WARN] Could not rediscover '{semantic_name}', using cached locator anyway")
             return fallback
 
         raise ValueError(f"Discovered locator invalid for '{semantic_name}': None")
@@ -83,7 +91,7 @@ class LocatorDiscovery:
         try:
             locator = self._build_locator(locator_meta)
             await locator.click()
-            print(f"✅ Clicked '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
+            print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
 
             if navigates:
                 # Wait for either provided selector or page DOM load
@@ -96,7 +104,7 @@ class LocatorDiscovery:
                 await self.page.wait_for_selector(wait_for_selector, timeout=5000)
 
         except Exception as e:
-            print(f"❌ Click failed for {locator_meta}: {e}")
+            print(f"[ERROR] Click failed for {locator_meta}: {e}")
             raise
 
     def _build_locator(self, locator_meta: dict):
@@ -124,3 +132,27 @@ class LocatorDiscovery:
             raise ValueError("Role-based locators are disabled for self-healing")
 
         raise ValueError(f"Unsupported locator strategy: {strategy}")
+
+    async def _discover_and_cache(self, semantic_name: str) -> Optional[dict]:
+        """
+        Two-stage locator discovery:
+        1. DOMScanner  — fast rule-based token matching (no network, instant)
+        2. AILocatorSuggester — local LLM via Ollama (free, no subscription)
+                                only runs when DOMScanner returns None
+        """
+        # Stage 1: rule-based DOM scan
+        new_locator = await self.scanner.find_element(semantic_name)
+
+        # Stage 2: AI fallback when rule-based scan fails
+        if not new_locator:
+            print(f"[AI] DOMScanner could not find '{semantic_name}', asking LLM...")
+            new_locator = await self.ai.suggest(semantic_name)
+            if new_locator:
+                new_locator["source"] = "ai"
+
+        if new_locator:
+            new_locator.setdefault("confidence", 1.0)
+            new_locator.setdefault("failures", 0)
+            new_locator["last_used"] = datetime.now(timezone.utc).isoformat()
+
+        return new_locator

@@ -15,4 +15,4 @@ class IntentClassifier:
         if any(word in text for word in ["button", "icon", "field", "link"]):
             return "locator"
 
-        return "unknown"
+        return "locator"
