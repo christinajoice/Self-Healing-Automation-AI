@@ -1,0 +1,6 @@
+TestCaseID,Step,Action,Target,Data,Confidence
+TC_01,1,open,login page,,high
+TC_01,2,enter,username field,tomsmith,high
+TC_01,3,enter,password field,SuperSecretPassword!,high
+TC_01,4,click,login button,,medium
+TC_01,5,validate,message on next page,test,high

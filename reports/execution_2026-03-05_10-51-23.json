@@ -1,0 +1,230 @@
+{
+  "generated_at": "2026-03-05T10:51:23.343723",
+  "results": [
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-05T10:21:17.942850",
+      "end_time": "2026-03-05T10:21:39.894546",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:21:19.935195"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:21:21.137269"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Locator.wait_for: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#sign-in-button\") to be visible\n",
+          "timestamp": "2026-03-05T10:21:21.291810"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "string",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:21:39.015726"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:21:39.129153"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:21:39.405916"
+        }
+      ],
+      "error": "Locator.wait_for: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#sign-in-button\") to be visible\n"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-05T10:35:29.495797",
+      "end_time": "2026-03-05T10:35:50.761435",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:35:31.116086"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:35:32.395870"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Locator.wait_for: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#sign-in-button\") to be visible\n",
+          "timestamp": "2026-03-05T10:35:32.524999"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:35:49.948200"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:35:50.060709"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:35:50.330323"
+        }
+      ],
+      "error": "Locator.wait_for: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#sign-in-button\") to be visible\n"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-05T10:50:56.487715",
+      "end_time": "2026-03-05T10:51:23.343723",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:50:59.475686"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:51:01.526527"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Locator.wait_for: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#sign-in-button\") to be visible\n",
+          "timestamp": "2026-03-05T10:51:01.938339"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:51:21.197907"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:51:21.451539"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-05T10:51:22.139743"
+        }
+      ],
+      "error": "Locator.wait_for: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#sign-in-button\") to be visible\n"
+    }
+  ]
+}

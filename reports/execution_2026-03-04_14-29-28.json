@@ -1,0 +1,819 @@
+{
+  "generated_at": "2026-03-04T14:29:28.922739",
+  "results": [
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T13:09:25.826689",
+      "end_time": "2026-03-04T13:09:40.146818",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:09:29.974723"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "username field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:09:31.542165"
+        },
+        {
+          "step": 3,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:09:34.084951"
+        },
+        {
+          "step": 4,
+          "action": "click",
+          "target": "login button",
+          "data": "",
+          "confidence": "medium",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:09:36.526535"
+        },
+        {
+          "step": 5,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:09:38.816246"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T13:13:11.773885",
+      "end_time": "2026-03-04T13:13:32.741480",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:13:14.415675"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:13:15.897511"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:13:16.437912"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:13:30.392670"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "login button",
+          "data": "",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:13:30.766020"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:13:31.422459"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T13:17:20.961985",
+      "end_time": "2026-03-04T13:17:41.094394",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:17:23.564347"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:17:24.898239"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:17:25.381420"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:17:38.964423"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in button",
+          "data": "",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:17:39.270273"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:17:39.934474"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T13:22:41.672393",
+      "end_time": "2026-03-04T13:23:03.067263",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:22:44.439185"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:22:46.612735"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:22:46.961669"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:23:00.685216"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in button",
+          "data": "",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:23:00.985223"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:23:01.657565"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T13:24:22.726177",
+      "end_time": "2026-03-04T13:24:44.499430",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:24:25.653358"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:24:28.288182"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:24:28.624057"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:24:42.202482"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:24:42.479538"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:24:43.145298"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T13:47:48.245632",
+      "end_time": "2026-03-04T13:48:10.223425",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:47:51.261351"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:47:53.111098"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T13:47:53.792166"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:48:07.797279"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:48:08.190296"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T13:48:08.992990"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T14:03:19.565647",
+      "end_time": "2026-03-04T14:03:37.349035",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:03:21.477766"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:03:22.584500"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T14:03:22.882434"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:03:36.218796"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:03:36.395721"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:03:36.774118"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T14:11:36.876654",
+      "end_time": "2026-03-04T14:11:54.373304",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:11:38.569489"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:11:39.696604"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T14:11:39.884443"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:11:53.181765"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:11:53.355593"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:11:53.697641"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T14:18:25.939863",
+      "end_time": "2026-03-04T14:18:43.852936",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:18:27.729941"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:18:28.893548"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T14:18:29.195767"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:18:42.543649"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:18:42.772827"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:18:43.238892"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T14:28:14.767346",
+      "end_time": "2026-03-04T14:28:32.195111",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:28:16.459257"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:28:17.748877"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue button",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T14:28:17.909342"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:28:31.105338"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:28:31.291366"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:28:31.628220"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-04T14:29:10.865327",
+      "end_time": "2026-03-04T14:29:28.922739",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:29:12.445664"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "email address field",
+          "data": "christinallrejoice@gmail.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:29:14.161979"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "continue",
+          "data": "",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid: None",
+          "timestamp": "2026-03-04T14:29:14.334120"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "Christisalive1$",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:29:27.781370"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "log in",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:29:27.967818"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-04T14:29:28.361768"
+        }
+      ],
+      "error": "Discovered locator invalid: None"
+    }
+  ]
+}

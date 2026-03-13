@@ -1,0 +1,11 @@
+playwright
+fastapi
+uvicorn
+streamlit
+pandas
+openpyxl
+python-dotenv
+rich
+pytest
+allure-pytest
+python-multipart

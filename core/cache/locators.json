@@ -1,0 +1,49 @@
+{
+    "https://www.amazon.jobs/en-US/applicant/login?": {
+        "email address field": [
+            {
+                "strategy": "css",
+                "value": "input[name='email']",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-03-05T10:51:01.689071"
+            }
+        ],
+        "continue button": [
+            {
+                "strategy": "css",
+                "value": "#sign-in-button",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-03-04T14:28:18.003242"
+            }
+        ],
+        "password field": [
+            {
+                "strategy": "css",
+                "value": "#loginFormPasswordInputField",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-03-05T10:51:21.243318"
+            }
+        ],
+        "log in": [
+            {
+                "strategy": "css",
+                "value": "#loginFormUsernameInputField",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-03-05T10:51:21.536755"
+            }
+        ],
+        "continue": [
+            {
+                "strategy": "css",
+                "value": "#sign-in-button",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-03-05T10:51:02.056866"
+            }
+        ]
+    }
+}
