@@ -121,5 +121,50 @@
                 "last_used": "2026-03-13T10:50:28.418759+00:00"
             }
         ]
+    },
+    "https://mcheck.elixruat.awsdns.internal.das/network-adequacy": {
+        "userID field": [
+            {
+                "strategy": "css",
+                "value": "input[autocomplete='username']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T07:18:16.240406+00:00"
+            }
+        ],
+        "login button": [
+            {
+                "strategy": "css",
+                "value": "input[autocomplete='username']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T07:18:31.280458+00:00"
+            }
+        ],
+        "Next Button": [
+            {
+                "strategy": "css",
+                "value": "button:has-text('Next')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T07:46:11.151934+00:00"
+            }
+        ],
+        "password field": [
+            {
+                "strategy": "css",
+                "value": "#credentials.passcode",
+                "confidence": 0.9,
+                "failures": 1,
+                "last_used": "2026-03-17T07:46:26.018531+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "#credentials.passcode",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T07:46:40.125054+00:00"
+            }
+        ]
     }
 }

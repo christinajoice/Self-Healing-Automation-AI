@@ -1,6 +1,7 @@
 TestCaseID,Step,Action,Target,Data,Confidence
-TC_01,1,open,login page,, high
-TC_01,2,enter,userID field,christina.joice@hilabs.com,high
-TC_01,3,enter,password field,HiLabs@123456,high
-TC_01,4,click,login button,,medium
-TC_01,5,validate,message on next page,test,low
+TC_01,1,open,login page,https://mcheck.elixruat.awsdns.internal.das/network-adequacy, high
+TC_01,2,enter,userID field,AM30115,high
+TC_01,3,click,Next Button,,high
+TC_01,4,enter,password field,HiLabs@123456,high
+TC_01,5,click,login button,,medium
+TC_01,6,validate,Network Adequacy icon,,low

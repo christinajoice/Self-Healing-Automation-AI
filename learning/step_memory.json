@@ -40,10 +40,10 @@
     "recommended_confidence": "high"
   },
   "c786f3f692f5d950a2b886b79be40736": {
-    "runs": 35,
+    "runs": 36,
     "healed": 5,
     "soft_fail": 0,
-    "pass": 30,
+    "pass": 31,
     "fail": 5,
     "recommended_confidence": "low"
   },
@@ -64,10 +64,10 @@
     "recommended_confidence": "low"
   },
   "a0cdeff25b474cb51a0f4a7f407823cc": {
-    "runs": 23,
+    "runs": 24,
     "healed": 5,
     "soft_fail": 0,
-    "pass": 18,
+    "pass": 19,
     "fail": 5,
     "recommended_confidence": "low"
   },
@@ -104,10 +104,10 @@
     "recommended_confidence": "medium"
   },
   "54f0ae431e465e8768f969056395d264": {
-    "runs": 28,
+    "runs": 29,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 18,
+    "pass": 19,
     "fail": 10,
     "recommended_confidence": "medium"
   },
@@ -160,11 +160,11 @@
     "recommended_confidence": "medium"
   },
   "1eecca68dd22dc52a65a6de4c0de8f5a": {
-    "runs": 10,
+    "runs": 12,
     "healed": 2,
     "soft_fail": 0,
     "pass": 6,
-    "fail": 4,
+    "fail": 6,
     "recommended_confidence": "medium"
   },
   "931eb3d343a4ce1d86fffd91799fce9c": {
@@ -192,11 +192,43 @@
     "recommended_confidence": "medium"
   },
   "0733fd105a2b0dcc7ca10df08c9fbed5": {
+    "runs": 2,
+    "healed": 1,
+    "soft_fail": 0,
+    "pass": 2,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "c7361d3077e8f2510a1bb4bd3dba04ab": {
     "runs": 1,
     "healed": 0,
     "soft_fail": 0,
     "pass": 1,
     "fail": 0,
     "recommended_confidence": "high"
+  },
+  "1a349dfe2ce52980f34c1342287c64cf": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "3ede4037a9f41a49c3410a52b24ce586": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "1a89927e8bfdffa8113713411789c329": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 0,
+    "fail": 1,
+    "recommended_confidence": "medium"
   }
 }
