@@ -4,7 +4,7 @@ export interface ExecutionStep {
   target?: string;
   data?: string;
   confidence: string;
-  status: "PASS" | "FAIL";
+  status: "PASS" | "FAIL" | "SKIPPED";
   healed: boolean;
   error?: string;
   timestamp: string;

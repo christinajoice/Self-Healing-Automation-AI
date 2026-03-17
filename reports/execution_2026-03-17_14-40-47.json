@@ -1,0 +1,133 @@
+{
+  "generated_at": "2026-03-17T14:40:47.830846",
+  "results": [
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "PASS",
+      "start_time": "2026-03-17T14:36:45.656755+00:00",
+      "end_time": "2026-03-17T14:37:31.720099+00:00",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": " high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:36:53.547216+00:00"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "userID field",
+          "data": "christina.joice@hilabs.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:37:05.780700+00:00"
+        },
+        {
+          "step": 3,
+          "action": "enter",
+          "target": "password field",
+          "data": "HiLabs@123456",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:37:14.190415+00:00"
+        },
+        {
+          "step": 4,
+          "action": "click",
+          "target": "login button",
+          "data": "",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:37:22.525492+00:00"
+        },
+        {
+          "step": 5,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "low",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:37:30.998708+00:00"
+        }
+      ],
+      "error": null
+    },
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "PASS",
+      "start_time": "2026-03-17T14:40:06.208870+00:00",
+      "end_time": "2026-03-17T14:40:47.830846+00:00",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "",
+          "confidence": " high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:40:08.168899+00:00"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "userID field",
+          "data": "christina.joice@hilabs.com",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:40:21.843618+00:00"
+        },
+        {
+          "step": 3,
+          "action": "enter",
+          "target": "password field",
+          "data": "HiLabs@123456",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:40:30.316660+00:00"
+        },
+        {
+          "step": 4,
+          "action": "click",
+          "target": "login button",
+          "data": "",
+          "confidence": "medium",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:40:38.509705+00:00"
+        },
+        {
+          "step": 5,
+          "action": "validate",
+          "target": "message on next page",
+          "data": "test",
+          "confidence": "low",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T14:40:46.897208+00:00"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

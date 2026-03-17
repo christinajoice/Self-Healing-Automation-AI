@@ -11,9 +11,12 @@ export default function UploadForm({ onExecutionStart }: Props) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
-    if (!file || !baseUrl) return alert("CSV & Base URL required");
+    setError(null);
+    if (!file) return setError("Please select a CSV test case file.");
+    if (!baseUrl) return setError("Base URL is required.");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -26,7 +29,7 @@ export default function UploadForm({ onExecutionStart }: Props) {
       const res = await uploadTestcase(formData);
       onExecutionStart(res.execution_id);
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Upload failed");
+      setError(err.response?.data?.detail || "Upload failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -34,34 +37,92 @@ export default function UploadForm({ onExecutionStart }: Props) {
 
   return (
     <div className="card">
-      <h2>Upload Test Case</h2>
+      <div className="card-header">
+        <span className="card-icon">📂</span>
+        <h2>Run Test Case</h2>
+      </div>
 
-      <input type="file" accept=".csv"
-        onChange={e => setFile(e.target.files?.[0] || null)}
-      />
+      <div className="card-body">
+        <div className="upload-grid">
+          {/* File upload */}
+          <div className="form-group span-full">
+            <label className="form-label">Test Case File <span className="optional">.csv</span></label>
+            <div className="file-drop-area">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={e => setFile(e.target.files?.[0] || null)}
+              />
+              <span className="file-drop-icon">📄</span>
+              <div className="file-drop-text">
+                {file ? (
+                  <strong className="file-selected-name">✓ {file.name}</strong>
+                ) : (
+                  <>
+                    <strong>Click to browse or drop a file</strong>
+                    <span>Supported format: CSV</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
 
-      <input
-        placeholder="Base URL"
-        value={baseUrl}
-        onChange={e => setBaseUrl(e.target.value)}
-      />
+          {/* Base URL */}
+          <div className="form-group span-full">
+            <label className="form-label">Base URL</label>
+            <input
+              type="url"
+              placeholder="https://your-app.example.com"
+              value={baseUrl}
+              onChange={e => setBaseUrl(e.target.value)}
+            />
+          </div>
 
-      <input
-        placeholder="Username (optional)"
-        value={username}
-        onChange={e => setUsername(e.target.value)}
-      />
+          {/* Credentials */}
+          <div className="form-group">
+            <label className="form-label">
+              Username <span className="optional">(optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+            />
+          </div>
 
-      <input
-        placeholder="Password (optional)"
-        type="password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-      />
+          <div className="form-group">
+            <label className="form-label">
+              Password <span className="optional">(optional)</span>
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
+        </div>
 
-      <button disabled={loading} onClick={submit}>
-        {loading ? "Uploading..." : "Execute"}
-      </button>
+        {error && <div className="inline-error" style={{ marginTop: 14 }}>{error}</div>}
+
+        <div className="form-actions" style={{ marginTop: 18 }}>
+          <button
+            className="btn btn-primary"
+            disabled={loading}
+            onClick={submit}
+          >
+            {loading ? (
+              <>
+                <span className="spinner" />
+                Uploading…
+              </>
+            ) : (
+              <>▶ Execute Tests</>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

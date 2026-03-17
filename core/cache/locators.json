@@ -121,5 +121,34 @@
                 "last_used": "2026-03-13T10:50:28.418759+00:00"
             }
         ]
+    },
+    "https://networkadequacy-elevance-uat-internal.hilabs.com/": {
+        "userID field": [
+            {
+                "strategy": "css",
+                "value": "input[name='username']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T14:46:31.611475+00:00"
+            }
+        ],
+        "password field": [
+            {
+                "strategy": "css",
+                "value": "input[name='password']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T14:46:39.922922+00:00"
+            }
+        ],
+        "login button": [
+            {
+                "strategy": "css",
+                "value": "input[name='username']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-17T14:46:48.239391+00:00"
+            }
+        ]
     }
 }

@@ -40,10 +40,10 @@
     "recommended_confidence": "high"
   },
   "c786f3f692f5d950a2b886b79be40736": {
-    "runs": 35,
+    "runs": 38,
     "healed": 5,
     "soft_fail": 0,
-    "pass": 30,
+    "pass": 33,
     "fail": 5,
     "recommended_confidence": "low"
   },
@@ -64,10 +64,10 @@
     "recommended_confidence": "low"
   },
   "a0cdeff25b474cb51a0f4a7f407823cc": {
-    "runs": 23,
+    "runs": 26,
     "healed": 5,
     "soft_fail": 0,
-    "pass": 18,
+    "pass": 21,
     "fail": 5,
     "recommended_confidence": "low"
   },
@@ -104,10 +104,10 @@
     "recommended_confidence": "medium"
   },
   "54f0ae431e465e8768f969056395d264": {
-    "runs": 28,
+    "runs": 31,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 18,
+    "pass": 21,
     "fail": 10,
     "recommended_confidence": "medium"
   },
@@ -160,10 +160,10 @@
     "recommended_confidence": "medium"
   },
   "1eecca68dd22dc52a65a6de4c0de8f5a": {
-    "runs": 10,
+    "runs": 13,
     "healed": 2,
     "soft_fail": 0,
-    "pass": 6,
+    "pass": 9,
     "fail": 4,
     "recommended_confidence": "medium"
   },
@@ -192,10 +192,10 @@
     "recommended_confidence": "medium"
   },
   "0733fd105a2b0dcc7ca10df08c9fbed5": {
-    "runs": 1,
+    "runs": 4,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 1,
+    "pass": 4,
     "fail": 0,
     "recommended_confidence": "high"
   }
