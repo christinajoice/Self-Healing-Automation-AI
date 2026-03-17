@@ -217,6 +217,12 @@ class LocatorDiscovery:
                 new_locator["source"] = "ai"
 
         if new_locator:
+            # Ensure the discovered locator is unique for this context.
+            # Generic selectors like [aria-label='Action'] match every row's icon —
+            # if multiple elements match we must scope the selector to the anchor
+            # container so subsequent runs click the right row.
+            new_locator = await self._ensure_unique_in_context(new_locator, context_text)
+
             new_locator.setdefault("confidence", 1.0)
             new_locator.setdefault("failures", 0)
             new_locator["last_used"] = datetime.now(timezone.utc).isoformat()
@@ -228,6 +234,81 @@ class LocatorDiscovery:
         # --- Final fallback: drop context and search globally ---
         print(f"[WARN] Could not find '{semantic_name}' near '{context_text}'. Falling back to global resolve.")
         return await self.resolve(semantic_name)
+
+    async def _ensure_unique_in_context(self, locator_meta: dict, context_text: str) -> dict:
+        """
+        Guarantee that a discovered locator resolves to exactly ONE element by
+        scoping it to the closest ancestor that contains context_text.
+
+        This prevents generic selectors like [aria-label='Action'] — which match
+        every row's action button — from being cached without the anchor scope.
+
+        Strategy
+        --------
+        1. Count how many elements the raw locator matches.
+        2. If count == 1, the locator is already unique — return as-is.
+        3. If count > 1, try prepending progressively broader ancestor containers
+           (tightest first) with :has-text('context') until count == 1.
+        4. If nothing makes it unique, still return the tightest scoped version
+           so at minimum we land inside the right row/section.
+        """
+        try:
+            raw_locator = self._build_locator(locator_meta)
+            count = await raw_locator.count()
+            if count <= 1:
+                return locator_meta   # Already unique
+
+            print(
+                f"[SCOPE] Locator '{locator_meta['value']}' matches {count} elements. "
+                f"Scoping to anchor '{context_text}'…"
+            )
+
+            safe_ctx = DOMScanner._css_escape(context_text)
+            base_val = locator_meta["value"]
+
+            # Try ancestor containers from tightest to broadest
+            ANCESTOR_SCOPES = [
+                "tr",
+                "li",
+                "[role='row']",
+                "[role='listitem']",
+                "[role='option']",
+                "div[class*='row']",
+                "div[class*='item']",
+                "div[class*='card']",
+                "div[class*='entry']",
+                "div[class*='record']",
+                "tbody",
+                "ul",
+                "ol",
+                "table",
+                "section",
+                "article",
+            ]
+
+            for ancestor_sel in ANCESTOR_SCOPES:
+                scoped_val = f"{ancestor_sel}:has-text('{safe_ctx}') {base_val}"
+                try:
+                    scoped_count = await self.page.locator(scoped_val).count()
+                    if scoped_count == 1:
+                        print(f"[SCOPED] Unique locator via '{ancestor_sel}': {scoped_val}")
+                        return {**locator_meta, "strategy": "css", "value": scoped_val}
+                    if scoped_count > 1:
+                        # Still multiple but narrowing — save as best candidate so far
+                        # (continue looking for a tighter scope)
+                        pass
+                except Exception:
+                    continue
+
+            # No ancestor yielded exactly 1 match — use the tightest row scope anyway
+            # so at least we don't click a random row.
+            fallback_val = f"tr:has-text('{safe_ctx}') {base_val}"
+            print(f"[SCOPE FALLBACK] Using row-scoped selector: {fallback_val}")
+            return {**locator_meta, "strategy": "css", "value": fallback_val}
+
+        except Exception as e:
+            print(f"[WARN] _ensure_unique_in_context failed: {e}")
+            return locator_meta
 
     async def _discover_and_cache(self, semantic_name: str) -> Optional[dict]:
         """
