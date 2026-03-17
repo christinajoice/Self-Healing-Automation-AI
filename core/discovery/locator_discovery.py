@@ -193,6 +193,35 @@ class LocatorDiscovery:
                 if visible_count == 0:
                     raise TimeoutError("Locator not visible")
 
+                # A context-keyed locator must resolve to exactly ONE element.
+                # Generic selectors like [aria-label='Action'] match every row's
+                # icon — if count > 1 we must scope it to the anchor row before
+                # returning, and update the cache so future runs use the right one.
+                if count > 1:
+                    print(
+                        f"[SCOPE] Cached context locator '{candidate['value']}' matches "
+                        f"{count} elements — re-scoping to anchor '{context_text}'…"
+                    )
+                    scoped = await self._ensure_unique_in_context(candidate, context_text)
+                    if scoped.get("value") != candidate.get("value"):
+                        try:
+                            scoped_count = await self._build_locator(scoped).count()
+                            if scoped_count >= 1:
+                                scoped.setdefault("confidence", candidate.get("confidence", 1.0))
+                                scoped["failures"] = 0
+                                scoped["last_used"] = datetime.now(timezone.utc).isoformat()
+                                # Replace the unscoped entry in the candidates list
+                                for ci, c in enumerate(candidates):
+                                    if c is candidate:
+                                        candidates[ci] = scoped
+                                        break
+                                self.cache.set(self.app_url, cache_key, candidates)
+                                print(f"[SCOPED] Replaced generic cached locator with: {scoped}")
+                                return scoped
+                        except Exception as scope_err:
+                            print(f"[WARN] Re-scoping failed: {scope_err}")
+                    # Scoping didn't improve things — fall through and use as-is
+
                 candidate["failures"] = 0
                 candidate["last_used"] = datetime.now(timezone.utc).isoformat()
                 self.cache.set(self.app_url, cache_key, candidates)
