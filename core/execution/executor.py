@@ -181,12 +181,40 @@ class TestExecutor:
 
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                # Only resolve locator on first attempt or if previous healing occurred
-                if action in ("click", "enter", "verify") or (
+                # Only resolve locator on first attempt or if previous healing occurred.
+                #
+                # Context-anchored resolution:
+                #   When the ``data`` field is set on a non-``open`` action it is
+                #   treated as an *anchor text* — a piece of content that uniquely
+                #   identifies the surrounding container (e.g. a table-row value,
+                #   a list-item label, a card title).  The resolver will scope its
+                #   DOM search to the element closest to that anchor rather than
+                #   scanning the whole page.
+                #
+                #   Exception: ``enter`` uses ``data`` as the text to type, so the
+                #   anchor context is encoded in the target name itself for that
+                #   action (e.g. target = "quantity input in Cart row").
+                #
+                # Examples:
+                #   click  | action icon      | PATHWAY       → clicks icon in PATHWAY row
+                #   click  | delete button    | John Doe      → clicks delete in John Doe list item
+                #   click  | edit icon        | Account Card  → clicks edit inside Account Card
+                #   verify | status badge     | Order #1042   → verifies badge in that order row
+                needs_locator = action in ("click", "enter", "verify") or (
                     action == "validate" and intent == "locator"
-                ):
+                )
+                uses_data_as_anchor = (
+                    action in ("click", "verify")
+                    or (action == "validate" and intent == "locator")
+                )
+
+                if needs_locator:
                     if attempt == 1 or healed or locator_meta is None:
-                        locator_meta = await discovery.resolve(target)
+                        context = (data or "").strip()
+                        if context and uses_data_as_anchor:
+                            locator_meta = await discovery.resolve_with_context(target, context)
+                        else:
+                            locator_meta = await discovery.resolve(target)
                     locator = discovery._build_locator(locator_meta)
 
                 pre_url = page.url

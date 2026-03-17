@@ -1,5 +1,5 @@
 from playwright.async_api import Page
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 import re
 
 
@@ -26,6 +26,11 @@ class DOMScanner:
         actual_norm = self.normalize(actual)
         matches = sum(1 for token in semantic_tokens if token in actual_norm)
         return matches >= min_matches
+
+    @staticmethod
+    def _css_escape(text: str) -> str:
+        """Escape single quotes and backslashes for safe use inside CSS attribute selectors."""
+        return text.replace("\\", "\\\\").replace("'", "\\'")
 
     async def find_element(self, semantic_name: str) -> Optional[Dict]:
         """
@@ -194,3 +199,281 @@ class DOMScanner:
         # 5️⃣ Nothing found
         print(f"[NOT FOUND] No locator discovered for: {semantic_name}")
         return None
+
+    # ------------------------------------------------------------------
+    # Context-Anchored Discovery
+    # ------------------------------------------------------------------
+
+    async def find_element_near_anchor(
+        self, semantic_name: str, anchor_text: str
+    ) -> Optional[Dict]:
+        """
+        Find an element (described by semantic_name) that is associated with
+        a known anchor element identified by anchor_text.
+
+        Works generically across all layout patterns:
+          - Table rows        (tr, [role='row'])
+          - List items        (li, [role='listitem'], [role='option'], [role='treeitem'])
+          - Cards / tiles     (div[class*='card'], div[class*='tile'])
+          - Named div rows    (div[class*='row'], div[class*='item'], div[class*='entry'])
+          - ARIA grid cells   ([role='gridcell'] → nearest [role='row'])
+          - Form fieldsets    (fieldset)
+          - Semantic sections (section, article)
+
+        Within each matching container the method searches for the target element
+        using a priority-ordered probe list and a semantic scoring pass.
+
+        Falls back to the global find_element() scan when no container matches.
+        """
+        safe_anchor = self._css_escape(anchor_text)
+
+        # Ordered from tightest/most-specific to most-general containers.
+        CONTAINER_SELECTORS: List[str] = [
+            "tr",
+            "li",
+            "[role='row']",
+            "[role='listitem']",
+            "[role='option']",
+            "[role='treeitem']",
+            "[role='menuitem']",
+            "[role='tab']",
+            "div[class*='row']",
+            "div[class*='item']",
+            "div[class*='card']",
+            "div[class*='entry']",
+            "div[class*='record']",
+            "div[class*='tile']",
+            "div[class*='panel']",
+            "div[class*='list-group']",
+            "fieldset",
+            "section",
+            "article",
+        ]
+
+        for container_sel in CONTAINER_SELECTORS:
+            try:
+                containers = self.page.locator(
+                    f"{container_sel}:has-text('{safe_anchor}')"
+                )
+                c_count = await containers.count()
+                if c_count == 0:
+                    continue
+
+                # Pick the tightest container: the one whose full text is shortest
+                # while still containing the anchor.  This avoids outer wrappers.
+                best_container = None
+                best_len = float("inf")
+                for i in range(c_count):
+                    c = containers.nth(i)
+                    try:
+                        txt = await c.inner_text()
+                        anchor_norm = self.normalize(anchor_text)
+                        if anchor_norm in self.normalize(txt) and len(txt) < best_len:
+                            best_len = len(txt)
+                            best_container = c
+                    except Exception:
+                        pass
+
+                if best_container is None:
+                    best_container = containers.first
+
+                result = await self._find_target_in_container(
+                    best_container, semantic_name, container_sel, safe_anchor
+                )
+                if result:
+                    return result
+
+            except Exception as e:
+                print(f"[WARN] Container scan failed for '{container_sel}': {e}")
+                continue
+
+        # Nothing found via container scoping — degrade gracefully to global scan.
+        print(
+            f"[ANCHOR FALLBACK] No container match for anchor '{anchor_text}'. "
+            "Falling back to global element scan."
+        )
+        return await self.find_element(semantic_name)
+
+    async def _find_target_in_container(
+        self,
+        container,
+        semantic_name: str,
+        container_sel: str,
+        safe_anchor: str,
+    ) -> Optional[Dict]:
+        """
+        Search for the target element inside a scoped container locator.
+
+        Probe order (most specific first):
+          1. Buttons (catches <button><svg/>, icon buttons, text buttons)
+          2. Anchor links
+          3. Submit / button type inputs
+          4. Checkboxes and radio buttons
+          5. Text / number / date inputs and textareas
+          6. Select dropdowns
+          7. ARIA-role interactive elements
+          8. Any keyboard-focusable element ([tabindex='0'])
+        """
+        PROBE_SELECTORS: List[str] = [
+            "button",
+            "a[href]",
+            "a",
+            "input[type='submit']",
+            "input[type='button']",
+            "input[type='checkbox']",
+            "input[type='radio']",
+            "input:not([type='hidden'])",
+            "textarea",
+            "select",
+            "[role='button']",
+            "[role='checkbox']",
+            "[role='switch']",
+            "[role='menuitem']",
+            "[role='link']",
+            "[tabindex='0']",
+        ]
+
+        for probe_sel in PROBE_SELECTORS:
+            try:
+                els = container.locator(probe_sel)
+                el_count = await els.count()
+                if el_count == 0:
+                    continue
+
+                # Score every element; keep the best match.
+                best_el, best_score, best_idx = None, -1, 0
+                for i in range(el_count):
+                    el = els.nth(i)
+                    score = await self._score_element_against_semantic(el, semantic_name)
+                    if score > best_score:
+                        best_score, best_el, best_idx = score, el, i
+
+                # Accept if there's a semantic match OR if only one element of this
+                # type exists in the container (highly likely to be the right one).
+                if best_el and (best_score > 0 or el_count == 1):
+                    stable = await self._build_stable_container_selector(
+                        best_el, container_sel, safe_anchor, probe_sel, best_idx, el_count
+                    )
+                    if stable:
+                        print(
+                            f"[FOUND] '{semantic_name}' near '{safe_anchor}' "
+                            f"via '{probe_sel}' in '{container_sel}': {stable}"
+                        )
+                        return {"strategy": "css", "value": stable}
+
+            except Exception:
+                continue
+
+        return None
+
+    async def _score_element_against_semantic(self, el, semantic_name: str) -> int:
+        """
+        Score how well an element's attributes match the semantic_name.
+
+        Scoring weights:
+          +3 — exact attribute match (aria-label, title, id, name, data-testid)
+          +2 — token match on a high-signal attribute
+          +1 — token match on class name (lower signal, high false-positive risk)
+
+        Returns 0 when no signal is found (element is still usable if it's the
+        only candidate of its type in the container).
+        """
+        score = 0
+        try:
+            high_signal_attrs = [
+                await el.get_attribute("aria-label") or "",
+                await el.get_attribute("title") or "",
+                await el.get_attribute("id") or "",
+                await el.get_attribute("name") or "",
+                await el.get_attribute("data-testid") or "",
+                await el.get_attribute("data-test") or "",
+                await el.get_attribute("data-cy") or "",
+            ]
+            text_content = ""
+            try:
+                text_content = (await el.inner_text()).strip()
+            except Exception:
+                pass
+
+            # Exact match on any high-signal attribute → heavy bonus
+            for attr_val in high_signal_attrs:
+                if not attr_val:
+                    continue
+                if self.normalize(attr_val) == self.normalize(semantic_name):
+                    score += 3
+                elif self.tokens_match(semantic_name, attr_val, min_matches=1):
+                    score += 2
+
+            # Text content match
+            if text_content and self.tokens_match(semantic_name, text_content, min_matches=1):
+                score += 2
+
+            # Class name match (lower confidence)
+            class_attr = await el.get_attribute("class") or ""
+            if class_attr and self.tokens_match(semantic_name, class_attr, min_matches=1):
+                score += 1
+
+        except Exception:
+            pass
+
+        return score
+
+    async def _build_stable_container_selector(
+        self,
+        el,
+        container_sel: str,
+        safe_anchor: str,
+        probe_sel: str,
+        idx: int,
+        total: int,
+    ) -> Optional[str]:
+        """
+        Build the most stable CSS selector for an element inside an anchor container.
+
+        Preference order (most → least stable):
+          1. Global unique id          → #element-id
+          2. aria-label                → container:has-text('anchor') probe[aria-label='...']
+          3. data-testid / data-test   → container:has-text('anchor') [data-testid='...']
+          4. title attribute           → container:has-text('anchor') probe[title='...']
+          5. name attribute            → container:has-text('anchor') probe[name='...']
+          6. Only child of type        → container:has-text('anchor') probe
+          7. nth-of-type position      → container:has-text('anchor') probe:nth-of-type(n)
+        """
+        try:
+            el_id = (await el.get_attribute("id") or "").strip()
+            aria_label = (await el.get_attribute("aria-label") or "").strip()
+            data_testid = (
+                await el.get_attribute("data-testid")
+                or await el.get_attribute("data-test")
+                or await el.get_attribute("data-cy")
+                or ""
+            ).strip()
+            title = (await el.get_attribute("title") or "").strip()
+            name = (await el.get_attribute("name") or "").strip()
+
+            base = f"{container_sel}:has-text('{safe_anchor}')"
+
+            if el_id:
+                # A unique id needs no container scope
+                return f"#{self._css_escape(el_id)}"
+
+            if aria_label:
+                return f"{base} {probe_sel}[aria-label='{self._css_escape(aria_label)}']"
+
+            if data_testid:
+                return f"{base} [data-testid='{self._css_escape(data_testid)}']"
+
+            if title:
+                return f"{base} {probe_sel}[title='{self._css_escape(title)}']"
+
+            if name:
+                return f"{base} {probe_sel}[name='{self._css_escape(name)}']"
+
+            if total == 1:
+                return f"{base} {probe_sel}"
+
+            # Last resort: positional — still scoped to the anchor row/container
+            return f"{base} {probe_sel}:nth-of-type({idx + 1})"
+
+        except Exception:
+            return None
