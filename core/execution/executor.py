@@ -61,6 +61,11 @@ class TestExecutor:
         base_url: str,
         credentials: Optional[Dict] = None,
     ):
+        # Reset per-run state so re-submitting the same test case without
+        # restarting the server always executes all steps fresh.
+        self._executed_steps = set()
+        self._load_learning_store()
+
         results = {
             "testcase_id": testcase["testcase_id"],
             "status": "PASS",

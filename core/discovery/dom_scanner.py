@@ -13,7 +13,11 @@ class DOMScanner:
 
     def tokenize(self, text: str):
         """Tokenize semantic name, removing common stop words"""
-        stop_words = {"field", "input", "box", "text", "value"}
+        # "icon" is excluded from meaningful tokens because it is a suffix used in
+        # both real UI elements ("edit icon", "action icon") AND unrelated HTML
+        # attributes (id="favicon", class="icon-wrapper") — keeping it causes
+        # the fallback id/class scan to match completely unrelated elements.
+        stop_words = {"field", "input", "box", "text", "value", "icon", "button", "btn"}
         tokens = self.normalize(text).split()
         return [t for t in tokens if t not in stop_words]
 
@@ -136,39 +140,190 @@ class DOMScanner:
                 continue
 
         # 3️⃣ CLICKABLE ELEMENTS: buttons, links, submit inputs
-        clickables = self.page.locator("button, a, input[type=submit]")
+        # Also includes [role=button] for custom interactive components and
+        # elements with aria-label / tooltip for icon-only navigation buttons.
+        clickables = self.page.locator(
+            "button, a, input[type=submit], [role='button']"
+        )
         clickable_count = await clickables.count()
 
         for i in range(clickable_count):
             el = clickables.nth(i)
             try:
-                text = (await el.inner_text()).strip()
-                if self.tokens_match(semantic_name, text, min_matches=1):
-                    el_id = await el.get_attribute("id")
+                el_id = (await el.get_attribute("id") or "").strip()
+                aria_label = (await el.get_attribute("aria-label") or "").strip()
+                title_attr = (await el.get_attribute("title") or "").strip()
+
+                # inner_text() respects CSS visibility — it skips screen-reader-only
+                # spans (display:none / visibility:hidden).  text_content() returns
+                # the raw DOM text regardless of CSS, so visually-hidden labels
+                # (e.g. <span class="sr-only">Network Adequacy</span>) are captured.
+                visible_text = (await el.inner_text()).strip()
+                raw_text = (await el.text_content() or "").strip()
+                # Prefer visible text; fall back to raw DOM text for hidden labels.
+                text = visible_text or raw_text
+
+                # Tooltip / data attributes used by React-Tooltip, MUI Tooltip,
+                # Ant Design, Tippy, etc. when the sidebar is in collapsed state.
+                tooltip = (
+                    await el.get_attribute("data-tooltip")
+                    or await el.get_attribute("data-tip")
+                    or await el.get_attribute("data-title")
+                    or await el.get_attribute("data-original-title")
+                    or ""
+                ).strip()
+
+                # Walk up one level to catch tooltip wrappers like
+                # <div data-tooltip="Network Adequacy"><button>…</button></div>
+                parent_tooltip = ""
+                try:
+                    parent_tooltip = (
+                        await el.evaluate(
+                            "el => el.parentElement ? ("
+                            "  el.parentElement.getAttribute('data-tooltip') || "
+                            "  el.parentElement.getAttribute('data-tip') || "
+                            "  el.parentElement.getAttribute('data-title') || "
+                            "  el.parentElement.getAttribute('title') || "
+                            "  el.parentElement.getAttribute('aria-label') || ''"
+                            ") : ''"
+                        )
+                    ).strip()
+                except Exception:
+                    pass
+
+                # Match priority: visible text → aria-label → title → tooltip
+                # attr → hidden DOM text → parent tooltip
+                matched_signal = None
+                if visible_text and self.tokens_match(semantic_name, visible_text, min_matches=1):
+                    matched_signal = "text"
+                elif aria_label and self.tokens_match(semantic_name, aria_label, min_matches=1):
+                    matched_signal = "aria-label"
+                elif title_attr and self.tokens_match(semantic_name, title_attr, min_matches=1):
+                    matched_signal = "title"
+                elif tooltip and self.tokens_match(semantic_name, tooltip, min_matches=1):
+                    matched_signal = "tooltip"
+                elif raw_text and raw_text != visible_text and self.tokens_match(semantic_name, raw_text, min_matches=1):
+                    matched_signal = "raw-text"
+                elif parent_tooltip and self.tokens_match(semantic_name, parent_tooltip, min_matches=1):
+                    matched_signal = "parent-tooltip"
+
+                if matched_signal:
                     if el_id:
-                        print(f"[FOUND] {semantic_name} via clickable id -> #{el_id}")
+                        print(f"[FOUND] {semantic_name} via clickable id ({matched_signal}) -> #{el_id}")
                         return {"strategy": "css", "value": f"#{el_id}"}
-                    else:
-                        tag = await el.evaluate("el => el.tagName.toLowerCase()")
-                        # Use tag-scoped :has-text() to avoid strict mode violations
-                        # in component frameworks (MUI, Ant, etc.) where inner spans
-                        # also contain the same text.
-                        selector = f"{tag}:has-text('{text}')"
-                        print(f"[FOUND] {semantic_name} via clickable tag+text -> {selector}")
+                    if aria_label and matched_signal == "aria-label":
+                        selector = f"[aria-label='{self._css_escape(aria_label)}']"
+                        print(f"[FOUND] {semantic_name} via clickable aria-label -> {selector}")
                         return {"strategy": "css", "value": selector}
+                    if title_attr and matched_signal == "title":
+                        tag = await el.evaluate("el => el.tagName.toLowerCase()")
+                        selector = f"{tag}[title='{self._css_escape(title_attr)}']"
+                        print(f"[FOUND] {semantic_name} via clickable title -> {selector}")
+                        return {"strategy": "css", "value": selector}
+                    if tooltip and matched_signal == "tooltip":
+                        attr_name = next(
+                            a for a in ("data-tooltip", "data-tip", "data-title", "data-original-title")
+                            if await el.get_attribute(a)
+                        )
+                        selector = f"[{attr_name}='{self._css_escape(tooltip)}']"
+                        print(f"[FOUND] {semantic_name} via clickable {attr_name} -> {selector}")
+                        return {"strategy": "css", "value": selector}
+                    if parent_tooltip and matched_signal == "parent-tooltip":
+                        # Scope the selector to the parent wrapper that carries the tooltip
+                        tag = await el.evaluate("el => el.tagName.toLowerCase()")
+                        selector = (
+                            f"[data-tooltip='{self._css_escape(parent_tooltip)}'] {tag},"
+                            f"[data-tip='{self._css_escape(parent_tooltip)}'] {tag},"
+                            f"[title='{self._css_escape(parent_tooltip)}'] {tag},"
+                            f"[aria-label='{self._css_escape(parent_tooltip)}'] {tag}"
+                        )
+                        print(f"[FOUND] {semantic_name} via parent tooltip wrapper -> {selector}")
+                        return {"strategy": "css", "value": selector}
+                    # raw-text or visible text match
+                    tag = await el.evaluate("el => el.tagName.toLowerCase()")
+                    use_text = visible_text or raw_text
+                    selector = f"{tag}:has-text('{self._css_escape(use_text)}')"
+                    print(f"[FOUND] {semantic_name} via clickable tag+text ({matched_signal}) -> {selector}")
+                    return {"strategy": "css", "value": selector}
+
+            except Exception:
+                continue
+
+        # 3.5️⃣ LABELLED NON-BUTTON ELEMENTS
+        # MUI / Ant / custom nav items are often plain <div> or <span> elements
+        # that carry their human-readable label via title="…", aria-label="…", or
+        # a tooltip data-attribute — not as button/a tags, so step 3 misses them.
+        # Scan every element that has one of these label attributes and match against
+        # the semantic name.  Exclude known non-interactive head elements.
+        NON_INTERACTIVE_TAGS_LABEL = {
+            "link", "meta", "script", "style", "head", "title",
+            "base", "noscript", "template", "slot", "html", "body",
+        }
+        LABEL_ATTR_SELECTORS = [
+            "[title]",
+            "[aria-label]",
+            "[data-tooltip]",
+            "[data-tip]",
+            "[data-title]",
+            "[data-original-title]",
+        ]
+        for attr_sel in LABEL_ATTR_SELECTORS:
+            try:
+                labelled = self.page.locator(attr_sel)
+                labelled_count = await labelled.count()
+                for i in range(labelled_count):
+                    el = labelled.nth(i)
+                    try:
+                        tag = (await el.evaluate("el => el.tagName.toLowerCase()")).strip()
+                        if tag in NON_INTERACTIVE_TAGS_LABEL:
+                            continue
+                        attr_name = attr_sel.strip("[]")
+                        attr_val = (await el.get_attribute(attr_name) or "").strip()
+                        if not attr_val:
+                            continue
+                        if not self.tokens_match(semantic_name, attr_val, min_matches=1):
+                            continue
+                        # Matched — build the most stable selector
+                        el_id = (await el.get_attribute("id") or "").strip()
+                        if el_id:
+                            print(f"[FOUND] {semantic_name} via labelled element id -> #{el_id}")
+                            return {"strategy": "css", "value": f"#{self._css_escape(el_id)}"}
+                        safe_val = self._css_escape(attr_val)
+                        selector = f"[{attr_name}='{safe_val}']"
+                        print(f"[FOUND] {semantic_name} via {attr_name} on <{tag}> -> {selector}")
+                        return {"strategy": "css", "value": selector}
+                    except Exception:
+                        continue
             except Exception:
                 continue
 
         # 4️⃣ FALLBACK: Search for elements with id or class attributes containing semantic tokens
         # This is a broader CSS search but can produce false positives; use carefully.
+        #
+        # NON_INTERACTIVE_TAGS are excluded because they are never visible/clickable
+        # UI elements (e.g. <link id="favicon"> lives in <head> and is invisible).
+        NON_INTERACTIVE_TAGS = {
+            "link", "meta", "script", "style", "head", "title",
+            "base", "noscript", "template", "slot",
+        }
+
         try:
             elements_with_id = self.page.locator("[id]")
             count_id = await elements_with_id.count()
             for i in range(count_id):
                 el = elements_with_id.nth(i)
+                try:
+                    tag = (await el.evaluate("el => el.tagName.toLowerCase()")).strip()
+                    if tag in NON_INTERACTIVE_TAGS:
+                        continue
+                except Exception:
+                    continue
                 el_id = await el.get_attribute("id") or ""
-                # fallback: token match or exact id match
-                if self.tokens_match(semantic_name, el_id) or (el_id == semantic_name):
+                # Require at least 2 meaningful token matches to reduce false positives,
+                # OR an exact id == semantic_name hit.
+                sem_tokens = self.tokenize(semantic_name)
+                min_hits = 2 if len(sem_tokens) >= 2 else 1
+                if self.tokens_match(semantic_name, el_id, min_matches=min_hits) or (el_id == semantic_name):
                     print(f"[FOUND] {semantic_name} via fallback id -> #{el_id}")
                     return {"strategy": "css", "value": f"#{el_id}"}
 
@@ -181,6 +336,12 @@ class DOMScanner:
             count_class = await elements_with_class.count()
             for i in range(count_class):
                 el = elements_with_class.nth(i)
+                try:
+                    tag = (await el.evaluate("el => el.tagName.toLowerCase()")).strip()
+                    if tag in NON_INTERACTIVE_TAGS:
+                        continue
+                except Exception:
+                    continue
                 class_attr = await el.get_attribute("class") or ""
                 first_class = class_attr.split()[0] if class_attr else ""
                 if not first_class:
@@ -188,7 +349,9 @@ class DOMScanner:
                 # Skip generic framework class names that match too broadly
                 if any(first_class.lower().startswith(p) for p in GENERIC_PREFIXES):
                     continue
-                if self.tokens_match(semantic_name, first_class, min_matches=1):
+                sem_tokens = self.tokenize(semantic_name)
+                min_hits = 2 if len(sem_tokens) >= 2 else 1
+                if self.tokens_match(semantic_name, first_class, min_matches=min_hits):
                     selector = f".{first_class}"
                     print(f"[FOUND] {semantic_name} via fallback class selector -> {selector}")
                     return {"strategy": "css", "value": selector}
@@ -388,10 +551,18 @@ class DOMScanner:
                 await el.get_attribute("data-testid") or "",
                 await el.get_attribute("data-test") or "",
                 await el.get_attribute("data-cy") or "",
+                # Tooltip attributes — collapsed sidebars and icon-only buttons
+                # often carry their human-readable label only here.
+                await el.get_attribute("data-tooltip") or "",
+                await el.get_attribute("data-tip") or "",
+                await el.get_attribute("data-title") or "",
+                await el.get_attribute("data-original-title") or "",
             ]
             text_content = ""
             try:
-                text_content = (await el.inner_text()).strip()
+                # text_content() picks up visually-hidden spans (sr-only labels)
+                # that inner_text() misses because it respects CSS display:none.
+                text_content = (await el.text_content() or "").strip()
             except Exception:
                 pass
 
