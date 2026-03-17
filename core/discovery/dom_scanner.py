@@ -46,7 +46,7 @@ class DOMScanner:
                     if for_attr:
                         # React/MUI auto-generates IDs like ':r0:' which are invalid in
                         # CSS id selectors (#:r0:). Use attribute selector instead.
-                        if for_attr.startswith(":") or ":" in for_attr:
+                        if for_attr.startswith(":") or ":" in for_attr or "." in for_attr:
                             selector = f"[id='{for_attr}']"
                         else:
                             selector = f"#{for_attr}"
