@@ -133,6 +133,102 @@ class LocatorDiscovery:
 
         raise ValueError(f"Unsupported locator strategy: {strategy}")
 
+    async def resolve_with_context(
+        self, semantic_name: str, context_text: str
+    ) -> dict:
+        """
+        Resolve a locator for semantic_name anchored to a known context_text.
+
+        This is the general-purpose mechanism for finding an element that is
+        associated with (or lives near) another element you already know.
+
+        Typical use-cases
+        -----------------
+        - Click the action icon in the row that contains "PATHWAY"
+        - Check the checkbox next to the label "Enable notifications"
+        - Click the Edit button inside the card titled "Account Settings"
+        - Fill the input that appears beside the "Start Date" label
+        - Click the delete icon in the list item "John Doe"
+
+        Test-case CSV convention
+        ------------------------
+        For ``click`` steps the ``Data`` column carries the context anchor text::
+
+            TC_01,6,click,action icon,PATHWAY,high
+                                      ^target  ^anchor (Data)
+
+        Discovery order
+        ---------------
+        1. Cached context-keyed locators (fast path, healed automatically)
+        2. DOMScanner.find_element_near_anchor()  — rule-based, instant
+        3. AILocatorSuggester.suggest()           — LLM fallback
+        4. Global resolve()                       — anchor-free last resort
+        """
+        await self.page.wait_for_load_state("domcontentloaded")
+        try:
+            await self.page.wait_for_selector("input, button, a", timeout=8000)
+        except Exception:
+            pass
+
+        # Cache key encodes both the target element and its anchor context so
+        # context-specific locators are stored independently from global ones.
+        cache_key = f"{semantic_name} @ {context_text}"
+        raw_candidates = self.cache.get_all(self.app_url, cache_key) or []
+        candidates = [
+            c for c in raw_candidates
+            if isinstance(c, dict) and "strategy" in c and "value" in c
+        ]
+
+        # --- Try cached context-keyed locators first ---
+        for candidate in sorted(candidates, key=lambda x: -x.get("confidence", 1.0)):
+            try:
+                locator = self._build_locator(candidate)
+                count = await locator.count()
+                if count == 0:
+                    raise TimeoutError("Locator not found in DOM")
+
+                visible_count = await locator.evaluate_all(
+                    "els => els.filter(e => e.offsetParent !== null).length"
+                )
+                if visible_count == 0:
+                    raise TimeoutError("Locator not visible")
+
+                candidate["failures"] = 0
+                candidate["last_used"] = datetime.now(timezone.utc).isoformat()
+                self.cache.set(self.app_url, cache_key, candidates)
+                print(f"[CACHED] Context locator for '{cache_key}': {candidate}")
+                return candidate
+
+            except TimeoutError:
+                candidate["failures"] = candidate.get("failures", 0) + 1
+                candidate["confidence"] = candidate.get("confidence", 1.0) * 0.9
+                print(f"[WARN] Context cached locator failed: {candidate['strategy']} → trying next")
+            except ValueError as ve:
+                print(f"[WARN] Context cached locator rejected: {candidate} → {ve}")
+
+        # --- Rediscover using anchor-aware scan ---
+        new_locator = await self.scanner.find_element_near_anchor(semantic_name, context_text)
+
+        # --- AI fallback when rule-based scan fails ---
+        if not new_locator:
+            print(f"[AI] Anchor scan failed for '{semantic_name}' near '{context_text}', asking LLM...")
+            new_locator = await self.ai.suggest(f"{semantic_name} near {context_text}")
+            if new_locator:
+                new_locator["source"] = "ai"
+
+        if new_locator:
+            new_locator.setdefault("confidence", 1.0)
+            new_locator.setdefault("failures", 0)
+            new_locator["last_used"] = datetime.now(timezone.utc).isoformat()
+            candidates.append(new_locator)
+            self.cache.set(self.app_url, cache_key, candidates)
+            print(f"[REDISCOVERED] Context locator for '{cache_key}': {new_locator}")
+            return new_locator
+
+        # --- Final fallback: drop context and search globally ---
+        print(f"[WARN] Could not find '{semantic_name}' near '{context_text}'. Falling back to global resolve.")
+        return await self.resolve(semantic_name)
+
     async def _discover_and_cache(self, semantic_name: str) -> Optional[dict]:
         """
         Two-stage locator discovery:
