@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-03-17T12:03:50.698571",
+  "results": [
+    {
+      "testcase_id": "sample_testcase.csv",
+      "status": "FAIL",
+      "start_time": "2026-03-17T12:01:26.849794+00:00",
+      "end_time": "2026-03-17T12:03:50.698571+00:00",
+      "steps": [
+        {
+          "step": 1,
+          "action": "open",
+          "target": "login page",
+          "data": "https://mcheck.elixruat.awsdns.internal.das/network-adequacy",
+          "confidence": " high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:01:35.881910+00:00"
+        },
+        {
+          "step": 2,
+          "action": "enter",
+          "target": "userID field",
+          "data": "AM30115",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": true,
+          "error": null,
+          "timestamp": "2026-03-17T12:01:40.286625+00:00"
+        },
+        {
+          "step": 3,
+          "action": "click",
+          "target": "Next Button",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:01:51.800145+00:00"
+        },
+        {
+          "step": 4,
+          "action": "enter",
+          "target": "password field",
+          "data": "HiLabs@123456",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": true,
+          "error": null,
+          "timestamp": "2026-03-17T12:01:52.247158+00:00"
+        },
+        {
+          "step": 5,
+          "action": "click",
+          "target": "verify button",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:02:07.800434+00:00"
+        },
+        {
+          "step": 6,
+          "action": "validate",
+          "target": "Network Adequacy",
+          "data": "",
+          "confidence": "low",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:02:17.097721+00:00"
+        },
+        {
+          "step": 7,
+          "action": "click",
+          "target": "Network Adequacy",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:02:35.467952+00:00"
+        },
+        {
+          "step": 8,
+          "action": "validate",
+          "target": "Network Group",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:02:35.702026+00:00"
+        },
+        {
+          "step": 9,
+          "action": "click",
+          "target": "action icon",
+          "data": "PATHWAY",
+          "confidence": "high",
+          "status": "FAIL",
+          "healed": false,
+          "error": "Discovered locator invalid for 'action icon': None",
+          "timestamp": "2026-03-17T12:02:36.932792+00:00"
+        },
+        {
+          "step": 10,
+          "action": "validate",
+          "target": "state",
+          "data": "",
+          "confidence": "high",
+          "status": "PASS",
+          "healed": false,
+          "error": null,
+          "timestamp": "2026-03-17T12:03:49.733558+00:00"
+        }
+      ],
+      "error": "Discovered locator invalid for 'action icon': None",
+      "failed_step": {
+        "step": 9,
+        "action": "click",
+        "target": "action icon",
+        "data": "PATHWAY",
+        "confidence": "high",
+        "status": "FAIL",
+        "healed": false,
+        "error": "Discovered locator invalid for 'action icon': None",
+        "timestamp": "2026-03-17T12:02:36.932792+00:00"
+      }
+    }
+  ]
+}

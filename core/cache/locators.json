@@ -1,12 +1,12 @@
 {
-    "https://mcheck.elixruat.awsdns.internal.das/": {
+    "https://mcheck.elixruat.awsdns.internal.das/network-adequacy": {
         "userID field": [
             {
                 "strategy": "css",
                 "value": "input[autocomplete='username']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:43:15.484572+00:00"
+                "last_used": "2026-03-17T12:01:51.734812+00:00"
             }
         ],
         "Next Button": [
@@ -15,7 +15,7 @@
                 "value": "button:has-text('Next')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:43:15.918958+00:00"
+                "last_used": "2026-03-17T12:01:52.084382+00:00"
             }
         ],
         "password field": [
@@ -24,7 +24,7 @@
                 "value": "[id='credentials.passcode']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:43:31.186864+00:00"
+                "last_used": "2026-03-17T12:02:07.583047+00:00"
             }
         ],
         "verify button": [
@@ -33,7 +33,7 @@
                 "value": "button:has-text('Verify')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:43:39.697214+00:00"
+                "last_used": "2026-03-17T12:02:16.451578+00:00"
             }
         ],
         "Network Adequacy": [
@@ -42,7 +42,7 @@
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:43:55.516959+00:00"
+                "last_used": "2026-03-17T12:02:35.515906+00:00"
             }
         ],
         "Network Group": [
@@ -51,16 +51,16 @@
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:44:03.508652+00:00"
+                "last_used": "2026-03-17T12:02:36.898999+00:00"
             }
         ],
-        "action icon @ PATHWAY": [
+        "state": [
             {
                 "strategy": "css",
-                "value": "[aria-label='Action']",
+                "value": "[data-tooltip='Please select a state to download the report'] button,[data-tip='Please select a state to download the report'] button,[title='Please select a state to download the report'] button,[aria-label='Please select a state to download the report'] button",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T10:44:12.495219+00:00"
+                "last_used": "2026-03-17T12:03:50.088726+00:00"
             }
         ]
     }
