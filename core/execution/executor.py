@@ -144,6 +144,27 @@ class TestExecutor:
 
                     results["steps"].append(step_result)
 
+                    if step_result["status"] == "FAIL" and confidence == "high":
+                        print(
+                            f"[SKIP] High-confidence step {idx} failed — skipping remaining steps in this test case"
+                        )
+                        remaining = testcase["steps"][idx:]  # idx is 1-based, so this is everything after current
+                        for r_idx, r_step in enumerate(remaining, start=idx + 1):
+                            results["steps"].append(
+                                {
+                                    "step": r_idx,
+                                    "action": r_step["action"],
+                                    "target": r_step.get("target"),
+                                    "data": r_step.get("data"),
+                                    "confidence": r_step.get("confidence", "high"),
+                                    "status": "SKIPPED",
+                                    "healed": False,
+                                    "error": f"Skipped: step {idx} failed with high confidence",
+                                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                                }
+                            )
+                        break
+
                 await browser.close()
 
         except Exception as e:
