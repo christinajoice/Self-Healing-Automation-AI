@@ -3,5 +3,9 @@ TC_01,1,open,login page,https://mcheck.elixruat.awsdns.internal.das/network-adeq
 TC_01,2,enter,userID field,AM30115,high
 TC_01,3,click,Next Button,,high
 TC_01,4,enter,password field,HiLabs@123456,high
-TC_01,5,click,login button,,medium
-TC_01,6,validate,Network Adequacy icon,,low
+TC_01,5,click,verify button,,high
+TC_01,6,validate,Network Adequacy,,low
+TC_02,1,click,Network Adequacy,,high
+TC_02,2,validate,Network Group,,high
+TC_02,3,click,action icon,PATHWAY,high
+Tc_02,4,validate,state,,high
