@@ -1,5 +1,56 @@
+# ── Python ────────────────────────────────────────────────────────────
 venv/
+.venv/
 __pycache__/
-.reports/
-.env
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Runtime data (user / app-specific — never share these) ────────────
+
+# Generated HTML & JSON execution reports
+reports/
+
+# AI-learned step confidence scores (specific to each user's app + test runs)
+learning/step_memory.json
+
+# Discovered & cached locators (specific to each app URL)
+core/cache/locators.json
+
+# Uploaded test case CSV files (each user has their own)
+uploads/
+
+# SQLite run history database
 *.db
+data/
+
+# ── Environment & secrets ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Editor / IDE ──────────────────────────────────────────────────────
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Frontend – Node ───────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend1/node_modules/
+
+# Frontend build output
+frontend/dist/
+frontend1/build/
+
+# ── Misc ──────────────────────────────────────────────────────────────
+*.log
+*.tmp
