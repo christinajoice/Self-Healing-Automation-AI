@@ -128,6 +128,12 @@ class LocatorDiscovery:
             return self.page.get_by_text(value, exact=True)
         if strategy == "css":
             return self.page.locator(value)
+        if strategy == "nth":
+            # Positional strategy: nth-index among all elements matching value.
+            # Used when row-scoped CSS cannot uniquely identify the target
+            # (e.g. the action icon is rendered outside the row in a portal).
+            nth_idx = locator_meta.get("nth", 0)
+            return self.page.locator(value).nth(nth_idx)
         if strategy in ("get_by_role", "role"):
             raise ValueError("Role-based locators are disabled for self-healing")
 
@@ -329,8 +335,51 @@ class LocatorDiscovery:
                 except Exception:
                     continue
 
-            # No ancestor yielded exactly 1 match — use the tightest row scope anyway
-            # so at least we don't click a random row.
+            # No CSS ancestor scope yielded exactly 1 match.
+            # Last resort: positional (nth) strategy.
+            # Find which row/item contains the anchor text, then pick the
+            # element at the same index among all matching elements on the page.
+            # This works even when action icons are rendered outside the row
+            # (e.g. React portals, sticky/fixed columns, floating action menus).
+            try:
+                row_index = await self.page.evaluate(
+                    """(anchor) => {
+                        const ROW_SELS = [
+                            'tr', '[role="row"]', 'li',
+                            '[role="listitem"]', '[role="option"]',
+                        ];
+                        for (const sel of ROW_SELS) {
+                            const rows = Array.from(document.querySelectorAll(sel));
+                            // Skip header/decoration rows that have no data cells
+                            const dataRows = rows.filter(r =>
+                                r.querySelector('td, [role="gridcell"], [role="cell"]')
+                            );
+                            const idx = dataRows.findIndex(
+                                r => r.textContent.includes(anchor)
+                            );
+                            if (idx >= 0) return idx;
+                        }
+                        return -1;
+                    }""",
+                    context_text,
+                )
+                if row_index >= 0:
+                    total_els = await self.page.locator(base_val).count()
+                    if 0 <= row_index < total_els:
+                        print(
+                            f"[NTH FALLBACK] Using positional locator: "
+                            f"'{base_val}'.nth({row_index}) for anchor '{context_text}'"
+                        )
+                        return {
+                            **locator_meta,
+                            "strategy": "nth",
+                            "value": base_val,
+                            "nth": row_index,
+                        }
+            except Exception as nth_err:
+                print(f"[WARN] nth positional fallback failed: {nth_err}")
+
+            # Absolute last resort — row-scoped CSS (may not be unique)
             fallback_val = f"tr:has-text('{safe_ctx}') {base_val}"
             print(f"[SCOPE FALLBACK] Using row-scoped selector: {fallback_val}")
             return {**locator_meta, "strategy": "css", "value": fallback_val}
