@@ -6,7 +6,7 @@
                 "value": "input[autocomplete='username']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:01:51.734812+00:00"
+                "last_used": "2026-03-17T15:12:52.086899+00:00"
             }
         ],
         "Next Button": [
@@ -15,7 +15,7 @@
                 "value": "button:has-text('Next')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:01:52.084382+00:00"
+                "last_used": "2026-03-19T04:12:58.762013+00:00"
             }
         ],
         "password field": [
@@ -24,7 +24,7 @@
                 "value": "[id='credentials.passcode']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:02:07.583047+00:00"
+                "last_used": "2026-03-17T15:13:08.491222+00:00"
             }
         ],
         "verify button": [
@@ -33,7 +33,7 @@
                 "value": "button:has-text('Verify')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:02:16.451578+00:00"
+                "last_used": "2026-03-19T04:30:00.620666+00:00"
             }
         ],
         "Network Adequacy": [
@@ -42,7 +42,7 @@
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:02:35.515906+00:00"
+                "last_used": "2026-03-19T04:30:08.982607+00:00"
             }
         ],
         "Network Group": [
@@ -51,7 +51,16 @@
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:02:36.898999+00:00"
+                "last_used": "2026-03-19T04:30:12.613666+00:00"
+            }
+        ],
+        "action icon @ PATHWAY": [
+            {
+                "strategy": "css",
+                "value": "[aria-label='Action']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-19T04:13:23.045202+00:00"
             }
         ],
         "state": [
@@ -60,36 +69,34 @@
                 "value": "[data-tooltip='Please select a state to download the report'] button,[data-tip='Please select a state to download the report'] button,[title='Please select a state to download the report'] button,[aria-label='Please select a state to download the report'] button",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T12:03:50.088726+00:00"
-            }
-        ]
-    },
-    "https://networkadequacy-elevance-uat-internal.hilabs.com/": {
-        "userID field": [
-            {
-                "strategy": "css",
-                "value": "input[name='username']",
-                "confidence": 1.0,
-                "failures": 0,
-                "last_used": "2026-03-17T14:46:31.611475+00:00"
+                "last_used": "2026-03-19T04:13:23.452761+00:00"
             }
         ],
-        "password field": [
+        "Next": [
             {
                 "strategy": "css",
-                "value": "input[name='password']",
+                "value": "button:has-text('Next')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T14:46:39.922922+00:00"
+                "last_used": "2026-03-19T04:29:36.087355+00:00"
             }
         ],
-        "login button": [
+        "password": [
             {
                 "strategy": "css",
-                "value": "input[name='username']",
+                "value": "[id='credentials.passcode']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T14:46:48.239391+00:00"
+                "last_used": "2026-03-19T04:29:52.505082+00:00"
+            }
+        ],
+        "column menu icon @ Network group column": [
+            {
+                "strategy": "css",
+                "value": "#:r1t:",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-19T04:30:13.772779+00:00"
             }
         ]
     }
