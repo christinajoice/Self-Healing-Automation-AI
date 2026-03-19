@@ -82,8 +82,9 @@ class DOMScanner:
                 input_type = (await inp.get_attribute("type") or "").lower()
 
                 if self.tokens_match(semantic_name, el_id, min_matches=1):
-                    print(f"[FOUND] {semantic_name} via input id -> #{el_id}")
-                    return {"strategy": "css", "value": f"#{el_id}"}
+                    safe_id = self._css_escape(el_id)
+                    print(f"[FOUND] {semantic_name} via input id -> [id='{safe_id}']")
+                    return {"strategy": "css", "value": f"[id='{safe_id}']"}
 
                 if self.tokens_match(semantic_name, name, min_matches=1):
                     print(f"[FOUND] {semantic_name} via input name -> input[name='{name}']")
@@ -209,8 +210,9 @@ class DOMScanner:
 
                 if matched_signal:
                     if el_id:
-                        print(f"[FOUND] {semantic_name} via clickable id ({matched_signal}) -> #{el_id}")
-                        return {"strategy": "css", "value": f"#{el_id}"}
+                        safe_id = self._css_escape(el_id)
+                        print(f"[FOUND] {semantic_name} via clickable id ({matched_signal}) -> [id='{safe_id}']")
+                        return {"strategy": "css", "value": f"[id='{safe_id}']"}
                     if aria_label and matched_signal == "aria-label":
                         selector = f"[aria-label='{self._css_escape(aria_label)}']"
                         print(f"[FOUND] {semantic_name} via clickable aria-label -> {selector}")
@@ -286,8 +288,9 @@ class DOMScanner:
                         # Matched — build the most stable selector
                         el_id = (await el.get_attribute("id") or "").strip()
                         if el_id:
-                            print(f"[FOUND] {semantic_name} via labelled element id -> #{el_id}")
-                            return {"strategy": "css", "value": f"#{self._css_escape(el_id)}"}
+                            safe_id = self._css_escape(el_id)
+                            print(f"[FOUND] {semantic_name} via labelled element id -> [id='{safe_id}']")
+                            return {"strategy": "css", "value": f"[id='{safe_id}']"}
                         safe_val = self._css_escape(attr_val)
                         selector = f"[{attr_name}='{safe_val}']"
                         print(f"[FOUND] {semantic_name} via {attr_name} on <{tag}> -> {selector}")
@@ -324,8 +327,9 @@ class DOMScanner:
                 sem_tokens = self.tokenize(semantic_name)
                 min_hits = 2 if len(sem_tokens) >= 2 else 1
                 if self.tokens_match(semantic_name, el_id, min_matches=min_hits) or (el_id == semantic_name):
-                    print(f"[FOUND] {semantic_name} via fallback id -> #{el_id}")
-                    return {"strategy": "css", "value": f"#{el_id}"}
+                    safe_id = self._css_escape(el_id)
+                    print(f"[FOUND] {semantic_name} via fallback id -> [id='{safe_id}']")
+                    return {"strategy": "css", "value": f"[id='{safe_id}']"}
 
             # Generic prefixes from CSS frameworks — too broad to use as locators
             GENERIC_PREFIXES = (
@@ -392,6 +396,10 @@ class DOMScanner:
 
         # Ordered from tightest/most-specific to most-general containers.
         CONTAINER_SELECTORS: List[str] = [
+            # Column-header cells — must come before 'tr' so the tight
+            # <th> or [role='columnheader'] is preferred over the whole header row.
+            "th",
+            "[role='columnheader']",
             "tr",
             "li",
             "[role='row']",
@@ -625,8 +633,9 @@ class DOMScanner:
             base = f"{container_sel}:has-text('{safe_anchor}')"
 
             if el_id:
-                # A unique id needs no container scope
-                return f"#{self._css_escape(el_id)}"
+                # Use attribute selector instead of #id — handles React/framework IDs
+                # like ":r1t:" that contain CSS pseudo-class characters.
+                return f"[id='{self._css_escape(el_id)}']"
 
             if aria_label:
                 return f"{base} {probe_sel}[aria-label='{self._css_escape(aria_label)}']"

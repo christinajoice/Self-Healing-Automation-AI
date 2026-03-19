@@ -1,6 +1,8 @@
 TestCaseID,Step,Action,Target,Data,Confidence
-TC_01,1,open,login page,, high
-TC_01,2,enter,userID field,christina.joice@hilabs.com,high
-TC_01,3,enter,password field,HiLabs@123456,high
-TC_01,4,click,login button,,medium
-TC_01,5,validate,message on next page,test,low
+TC_NA_01,1,open,network adequacy page,,high
+TC_NA_01,2,enter,userID field,your-username,high
+TC_NA_01,3,enter,password field,your-password,high
+TC_NA_01,4,click,login button,,high
+TC_NA_01,5,click,column menu icon,Network Group,high
+TC_NA_01,6,click,Filter,,high
+TC_NA_01,7,enter,filter input,PATHWAY,high
