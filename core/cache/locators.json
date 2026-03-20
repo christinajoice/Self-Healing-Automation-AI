@@ -1,12 +1,12 @@
 {
     "https://networkadequacy-elevance-uat-internal.hilabs.com/": {
-        "userID field": [
+        "userid field": [
             {
                 "strategy": "css",
                 "value": "input[name='username']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:08.589891+00:00"
+                "last_used": "2026-03-20T13:15:10.705932+00:00"
             }
         ],
         "password field": [
@@ -15,7 +15,7 @@
                 "value": "input[name='password']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:17.070921+00:00"
+                "last_used": "2026-03-20T13:15:19.210260+00:00"
             }
         ],
         "login button": [
@@ -24,25 +24,25 @@
                 "value": "button:has-text('LOGIN')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:26.500900+00:00"
+                "last_used": "2026-03-20T13:15:28.683049+00:00"
             }
         ],
-        "Network Adequacy": [
+        "network adequacy": [
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:44.516838+00:00"
+                "last_used": "2026-03-20T13:17:10.396711+00:00"
             }
         ],
-        "Network Group": [
+        "network group": [
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:47.841898+00:00"
+                "last_used": "2026-03-20T13:17:20.045078+00:00"
             }
         ],
         "column menu icon @ Network Group": [
@@ -52,16 +52,16 @@
                 "hover_before": "[role='columnheader']:has-text('Network Group')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:49.772132+00:00"
+                "last_used": "2026-03-20T13:17:25.000886+00:00"
             }
         ],
-        "Filter option in the dropdown": [
+        "filter option in the dropdown": [
             {
                 "strategy": "css",
                 "value": "li:has-text('Filter')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:56.200840+00:00"
+                "last_used": "2026-03-20T13:17:34.145993+00:00"
             }
         ],
         "filter input text field": [
@@ -70,7 +70,7 @@
                 "value": "Filter value",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:11:56.675269+00:00"
+                "last_used": "2026-03-20T13:17:53.213644+00:00"
             }
         ],
         "apply": [
@@ -79,7 +79,26 @@
                 "value": "button:has-text('Apply')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-20T12:12:45.254303+00:00"
+                "last_used": "2026-03-20T13:17:44.568700+00:00"
+            }
+        ],
+        "column menu icon @ Filing Type": [
+            {
+                "strategy": "css",
+                "value": "[id=':r26:']",
+                "hover_before": "[role='columnheader']:has-text('Filing Type')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-20T13:17:47.594989+00:00"
+            }
+        ],
+        "filter": [
+            {
+                "strategy": "css",
+                "value": "[id=':r2q:']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-20T13:17:52.472629+00:00"
             }
         ]
     }

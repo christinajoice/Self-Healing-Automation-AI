@@ -327,14 +327,45 @@ class TestExecutor:
     # 🔹 POST ACTION CHECK
     # ------------------------------------------------------------------
     async def _post_action_check(self, page, pre_url, pre_dom, confidence, navigates=False):
+        # First wait — let the initial network burst settle
         try:
-            await page.wait_for_load_state("networkidle", timeout=5000)
-            if not navigates and page.url == pre_url and await page.content() == pre_dom:
-                raise AssertionError("No observable change after CTA")
+            await page.wait_for_load_state("networkidle", timeout=8000)
         except Exception:
+            pass
+
+        try:
+            current_url = page.url
+            if not navigates and current_url == pre_url and await page.content() == pre_dom:
+                raise AssertionError("No observable change after CTA")
+
+            # URL changed → could be a multi-hop SSO redirect chain.
+            # Poll until the URL is stable for two consecutive checks.
+            if current_url != pre_url:
+                await self._wait_for_url_stability(page, timeout=30)
+        except AssertionError:
             if confidence != "high":
                 return
             raise
+
+    async def _wait_for_url_stability(self, page, timeout: int = 30):
+        """Wait until the page URL stops changing (all redirects complete)."""
+        import time
+        deadline = time.monotonic() + timeout
+        prev_url = page.url
+        while time.monotonic() < deadline:
+            await asyncio.sleep(1.0)
+            try:
+                curr_url = page.url
+            except Exception:
+                break
+            if curr_url == prev_url:
+                # URL stable — wait for network to go idle on this final page
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=10000)
+                except Exception:
+                    pass
+                return
+            prev_url = curr_url
 
     # ------------------------------------------------------------------
     # 🔹 VALIDATION ENGINE
