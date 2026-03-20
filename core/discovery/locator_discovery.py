@@ -94,17 +94,45 @@ class LocatorDiscovery:
             # hover the parent container first so the element becomes visible/attached
             # before we attempt the click.
             hover_before = locator_meta.get("hover_before")
+            locator = self._build_locator(locator_meta)
+
             if hover_before:
+                # Hover the container to reveal the hidden element (e.g. column-menu icon).
+                # Then move the mouse directly to the target using page.mouse so the
+                # container's CSS hover state is never dropped between the hover and click.
+                # (Playwright's locator.click() re-positions the mouse internally and can
+                # briefly leave the hovered area, causing the icon to disappear mid-click.)
                 try:
                     await self.page.hover(hover_before, timeout=3000)
-                    await self.page.wait_for_timeout(300)
-                    print(f"[PRE-HOVER] Hovered '{hover_before}' to reveal target")
-                except Exception as he:
-                    print(f"[WARN] Pre-hover failed for '{hover_before}': {he}")
+                    # Wait for the element to be attached to the DOM (replaces fixed 300ms)
+                    try:
+                        await locator.wait_for(state="attached", timeout=1500)
+                    except Exception:
+                        await self.page.wait_for_timeout(500)
 
-            locator = self._build_locator(locator_meta)
-            await locator.click()
-            print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
+                    print(f"[PRE-HOVER] Hovered '{hover_before}' to reveal target")
+
+                    # Get the icon's bounding box and click via mouse API to keep hover active
+                    box = await locator.bounding_box()
+                    if box:
+                        cx = box["x"] + box["width"] / 2
+                        cy = box["y"] + box["height"] / 2
+                        await self.page.mouse.move(cx, cy)
+                        await self.page.mouse.click(cx, cy)
+                        print(f"[CLICK] '{locator_meta.get('value')}' via mouse (hover-reveal)")
+                    else:
+                        # Element not visible — try force click as last resort
+                        print(f"[WARN] bounding_box() returned None; attempting force click")
+                        await locator.click(force=True, timeout=3000)
+                        print(f"[CLICK] '{locator_meta.get('value')}' via force click")
+
+                except Exception as he:
+                    print(f"[WARN] Hover-reveal click failed: {he}; falling back to direct click")
+                    await locator.click()
+                    print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
+            else:
+                await locator.click()
+                print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
 
             if navigates:
                 # Wait for either provided selector or page DOM load
