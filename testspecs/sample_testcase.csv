@@ -1,8 +1,12 @@
 TestCaseID,Step,Action,Target,Data,Confidence
-TC_NA_01,1,open,network adequacy page,,high
-TC_NA_01,2,enter,userID field,your-username,high
-TC_NA_01,3,enter,password field,your-password,high
-TC_NA_01,4,click,login button,,high
-TC_NA_01,5,click,column menu icon,Network Group,high
-TC_NA_01,6,click,Filter,,high
-TC_NA_01,7,enter,filter input,PATHWAY,high
+TC_01,1,open,network adequacy page,,high
+TC_01,2,enter,userID field,christina.joice@hilabs.com,high
+TC_01,3,enter,password field,HiLabs@123456,high
+TC_01,4,click,login button,,high
+TC_01,5,validate,Network Adequacy,,low
+TC_02,1,click,Network Adequacy,,high
+TC_02,2,validate,Network Group,,high
+TC_02,3,click,column menu icon,Network Group,high
+TC_02,4,click,Filter option in the dropdown,,high
+TC_02,5,enter,filter input text field,PATHWAY,high
+TC_02,6,click,apply,,high

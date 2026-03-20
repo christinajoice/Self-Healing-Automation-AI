@@ -1,97 +1,21 @@
 {
-    "https://www.amazon.jobs/en-US/applicant/login?": {
-        "email address field": [
+    "https://networkadequacy-elevance-uat-internal.hilabs.com/": {
+        "userID field": [
             {
                 "strategy": "css",
-                "value": "input[name='email']",
-                "confidence": 0.9,
-                "failures": 0,
-                "last_used": "2026-03-05T10:51:01.689071"
-            }
-        ],
-        "continue button": [
-            {
-                "strategy": "css",
-                "value": "#sign-in-button",
-                "confidence": 0.9,
-                "failures": 0,
-                "last_used": "2026-03-04T14:28:18.003242"
-            }
-        ],
-        "password field": [
-            {
-                "strategy": "css",
-                "value": "#loginFormPasswordInputField",
-                "confidence": 0.9,
-                "failures": 0,
-                "last_used": "2026-03-05T10:51:21.243318"
-            }
-        ],
-        "log in": [
-            {
-                "strategy": "css",
-                "value": "#loginFormUsernameInputField",
-                "confidence": 0.9,
-                "failures": 0,
-                "last_used": "2026-03-05T10:51:21.536755"
-            }
-        ],
-        "continue": [
-            {
-                "strategy": "css",
-                "value": "#sign-in-button",
-                "confidence": 0.9,
-                "failures": 0,
-                "last_used": "2026-03-05T10:51:02.056866"
-            }
-        ]
-    },
-    "https://the-internet.herokuapp.com/login": {
-        "username field": [
-            {
-                "strategy": "css",
-                "value": "#username",
+                "value": "input[name='username']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-13T09:38:53.486297+00:00"
+                "last_used": "2026-03-20T12:11:08.589891+00:00"
             }
         ],
-        "password field": [
-            {
-                "strategy": "css",
-                "value": "#password",
-                "confidence": 1.0,
-                "failures": 0,
-                "last_used": "2026-03-13T10:07:26.303768+00:00"
-            }
-        ],
-        "login button": [
-            {
-                "strategy": "get_by_text",
-                "value": "Login",
-                "confidence": 1.0,
-                "failures": 0,
-                "last_used": "2026-03-13T09:38:54.186582+00:00"
-            }
-        ],
-        "user ID field": [
-            {
-                "strategy": "css",
-                "value": "#username",
-                "confidence": 1.0,
-                "failures": 0,
-                "last_used": "2026-03-13T10:07:26.058094+00:00"
-            }
-        ]
-    },
-    "https://networkadequacy-elevance-uat-internal.hilabs.com/auth/login?returnTo=%2Fnetwork-adequacy": {
         "password field": [
             {
                 "strategy": "css",
                 "value": "input[name='password']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-13T10:50:36.519707+00:00"
+                "last_used": "2026-03-20T12:11:17.070921+00:00"
             }
         ],
         "login button": [
@@ -100,54 +24,62 @@
                 "value": "button:has-text('LOGIN')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-13T10:50:44.598509+00:00"
+                "last_used": "2026-03-20T12:11:26.500900+00:00"
             }
         ],
-        "userid field": [
+        "Network Adequacy": [
             {
                 "strategy": "css",
-                "value": "input[name='username']",
+                "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-13T10:46:53.732149+00:00"
+                "last_used": "2026-03-20T12:11:44.516838+00:00"
             }
         ],
-        "userID field": [
+        "Network Group": [
             {
                 "strategy": "css",
-                "value": "input[name='username']",
+                "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-13T10:50:28.418759+00:00"
-            }
-        ]
-    },
-    "https://networkadequacy-elevance-uat-internal.hilabs.com/": {
-        "userID field": [
-            {
-                "strategy": "css",
-                "value": "input[name='username']",
-                "confidence": 1.0,
-                "failures": 0,
-                "last_used": "2026-03-17T14:46:31.611475+00:00"
+                "last_used": "2026-03-20T12:11:47.841898+00:00"
             }
         ],
-        "password field": [
+        "column menu icon @ Network Group": [
             {
                 "strategy": "css",
-                "value": "input[name='password']",
+                "value": "[id=':r2o:']",
+                "hover_before": "[role='columnheader']:has-text('Network Group')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T14:46:39.922922+00:00"
+                "last_used": "2026-03-20T12:11:49.772132+00:00"
             }
         ],
-        "login button": [
+        "Filter option in the dropdown": [
             {
                 "strategy": "css",
-                "value": "input[name='username']",
+                "value": "li:has-text('Filter')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-17T14:46:48.239391+00:00"
+                "last_used": "2026-03-20T12:11:56.200840+00:00"
+            }
+        ],
+        "filter input text field": [
+            {
+                "strategy": "get_by_placeholder",
+                "value": "Filter value",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-20T12:11:56.675269+00:00"
+            }
+        ],
+        "apply": [
+            {
+                "strategy": "css",
+                "value": "button:has-text('Apply')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-20T12:12:45.254303+00:00"
             }
         ]
     }
