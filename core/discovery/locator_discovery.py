@@ -89,6 +89,19 @@ class LocatorDiscovery:
         navigates=True → indicates page navigation happens, avoid retrying same locator.
         """
         try:
+            # If the target element is only revealed on hover (e.g. column-menu icons,
+            # row action buttons hidden via CSS/React until parent is moused over),
+            # hover the parent container first so the element becomes visible/attached
+            # before we attempt the click.
+            hover_before = locator_meta.get("hover_before")
+            if hover_before:
+                try:
+                    await self.page.hover(hover_before, timeout=3000)
+                    await self.page.wait_for_timeout(300)
+                    print(f"[PRE-HOVER] Hovered '{hover_before}' to reveal target")
+                except Exception as he:
+                    print(f"[WARN] Pre-hover failed for '{hover_before}': {he}")
+
             locator = self._build_locator(locator_meta)
             await locator.click()
             print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")

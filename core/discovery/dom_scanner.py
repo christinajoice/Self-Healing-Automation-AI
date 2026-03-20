@@ -454,6 +454,27 @@ class DOMScanner:
                 if result:
                     return result
 
+                # Nothing found — the target may only appear after hover
+                # (e.g. column-menu icon hidden via CSS until parent is hovered).
+                # Hover the container, wait for React/CSS to reveal the element,
+                # then re-scan. Tag the result so click_and_wait re-hovers first.
+                try:
+                    await best_container.hover()
+                    await self.page.wait_for_timeout(300)
+                    result = await self._find_target_in_container(
+                        best_container, semantic_name, container_sel, safe_anchor
+                    )
+                    if result:
+                        hover_sel = f"{container_sel}:has-text('{anchor_text}')"
+                        result["hover_before"] = hover_sel
+                        print(
+                            f"[HOVER-REVEAL] '{semantic_name}' found after hovering "
+                            f"'{hover_sel}' — tagged for pre-click hover"
+                        )
+                        return result
+                except Exception:
+                    pass  # hover attempt failed — fall through to global scan
+
             except Exception as e:
                 print(f"[WARN] Container scan failed for '{container_sel}': {e}")
                 continue
