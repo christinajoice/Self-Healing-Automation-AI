@@ -17,18 +17,29 @@ class DOMScanner:
         # both real UI elements ("edit icon", "action icon") AND unrelated HTML
         # attributes (id="favicon", class="icon-wrapper") — keeping it causes
         # the fallback id/class scan to match completely unrelated elements.
-        stop_words = {"field", "input", "box", "text", "value", "icon", "button", "btn"}
+        stop_words = {
+            # UI element type words
+            "field", "input", "box", "text", "value", "icon", "button", "btn",
+            # Common English filler words that appear in any sentence and cause
+            # false-positive whole-word matches (e.g. "the" in "in the dropdown"
+            # matching "Please select a state to download the report")
+            "a", "an", "the", "in", "on", "at", "to", "for", "of", "or",
+            "and", "by", "from", "with", "that", "this", "is", "it",
+        }
         tokens = self.normalize(text).split()
         return [t for t in tokens if t not in stop_words]
 
     def tokens_match(self, semantic: str, actual: str, min_matches: int = 1) -> bool:
         """
-        Return True if at least min_matches tokens from semantic are present in actual text.
-        This avoids false positives by requiring multiple token matches.
+        Return True if at least min_matches tokens from semantic appear as whole words
+        in the actual text.  Whole-word matching prevents "filter" from matching
+        "Filters" (plural) or "filtering" which would cause false positives.
         """
         semantic_tokens = self.tokenize(semantic)
         actual_norm = self.normalize(actual)
-        matches = sum(1 for token in semantic_tokens if token in actual_norm)
+        # Build word set from actual for O(1) whole-word lookup
+        actual_words = set(actual_norm.split())
+        matches = sum(1 for token in semantic_tokens if token in actual_words)
         return matches >= min_matches
 
     @staticmethod
@@ -91,8 +102,14 @@ class DOMScanner:
                     return {"strategy": "css", "value": f"input[name='{name}']"}
 
                 # Also check if the name value itself appears as a token substring
-                # (e.g. semantic="userid field" vs name="username" — "user" is shared)
-                if name and name.lower() in EMAIL_SEMANTICS:
+                # (e.g. semantic="userid field" vs name="username" — "user" is shared).
+                # Guard: skip when the semantic clearly describes a button/action, not a field
+                # (e.g. "login button" contains "login" which is in EMAIL_SEMANTICS, but it
+                # is not an input — this check would otherwise return the username input).
+                BUTTON_WORDS = {"button", "btn", "submit", "click", "link"}
+                sem_lower = semantic_name.lower()
+                is_button_semantic = any(w in sem_lower for w in BUTTON_WORDS)
+                if not is_button_semantic and name and name.lower() in EMAIL_SEMANTICS:
                     sem_norm_tokens = set(self.normalize(semantic_name).split())
                     if sem_norm_tokens & EMAIL_SEMANTICS:
                         print(f"[FOUND] {semantic_name} via input name semantic match -> input[name='{name}']")
@@ -141,10 +158,11 @@ class DOMScanner:
                 continue
 
         # 3️⃣ CLICKABLE ELEMENTS: buttons, links, submit inputs
-        # Also includes [role=button] for custom interactive components and
-        # elements with aria-label / tooltip for icon-only navigation buttons.
+        # Also includes [role=button] for custom interactive components,
+        # [role=menuitem] for MUI/Ant dropdown menu items (e.g. DataGrid column menu),
+        # and elements with aria-label / tooltip for icon-only navigation buttons.
         clickables = self.page.locator(
-            "button, a, input[type=submit], [role='button']"
+            "button, a, input[type=submit], [role='button'], [role='menuitem'], [role='option']"
         )
         clickable_count = await clickables.count()
 
@@ -448,8 +466,12 @@ class DOMScanner:
                 if best_container is None:
                     best_container = containers.first
 
+                # Initial scan: require a semantic score > 0 so that always-visible
+                # sibling elements (e.g. the Sort button in a column header) don't
+                # pre-empt hover-revealed targets (e.g. the column menu icon).
                 result = await self._find_target_in_container(
-                    best_container, semantic_name, container_sel, safe_anchor
+                    best_container, semantic_name, container_sel, safe_anchor,
+                    require_score=True,
                 )
                 if result:
                     return result
@@ -461,8 +483,11 @@ class DOMScanner:
                 try:
                     await best_container.hover()
                     await self.page.wait_for_timeout(300)
+                    # Hover scan: allow single-element heuristic — any newly
+                    # interactive element in this container is the intended target.
                     result = await self._find_target_in_container(
-                        best_container, semantic_name, container_sel, safe_anchor
+                        best_container, semantic_name, container_sel, safe_anchor,
+                        require_score=False,
                     )
                     if result:
                         hover_sel = f"{container_sel}:has-text('{anchor_text}')"
@@ -492,6 +517,7 @@ class DOMScanner:
         semantic_name: str,
         container_sel: str,
         safe_anchor: str,
+        require_score: bool = False,
     ) -> Optional[Dict]:
         """
         Search for the target element inside a scoped container locator.
@@ -533,16 +559,30 @@ class DOMScanner:
                     continue
 
                 # Score every element; keep the best match.
+                # Skip elements that are not pointer-interactive (e.g. column-menu
+                # icons hidden via opacity:0 / pointer-events:none until hover).
+                # Those must be discovered via the hover-scan path so hover_before
+                # gets set correctly; if we return them here click_and_wait will
+                # try to click a non-interactive element and time out.
                 best_el, best_score, best_idx = None, -1, 0
+                interactive_count = 0
                 for i in range(el_count):
                     el = els.nth(i)
+                    if not await self._is_pointer_interactive(el):
+                        continue
+                    interactive_count += 1
                     score = await self._score_element_against_semantic(el, semantic_name)
                     if score > best_score:
                         best_score, best_el, best_idx = score, el, i
 
-                # Accept if there's a semantic match OR if only one element of this
-                # type exists in the container (highly likely to be the right one).
-                if best_el and (best_score > 0 or el_count == 1):
+                # Accept if:
+                #  - There is a semantic score match (always), OR
+                #  - Only one interactive element exists AND we're in the hover scan
+                #    (require_score=False). In the initial scan (require_score=True)
+                #    we insist on a semantic signal so that always-visible siblings
+                #    (e.g. Sort buttons) don't block hover-revealed targets from being
+                #    discovered on the subsequent hover pass.
+                if best_el and (best_score > 0 or (not require_score and interactive_count == 1)):
                     stable = await self._build_stable_container_selector(
                         best_el, container_sel, safe_anchor, probe_sel, best_idx, el_count
                     )
@@ -557,6 +597,30 @@ class DOMScanner:
                 continue
 
         return None
+
+    @staticmethod
+    async def _is_pointer_interactive(el) -> bool:
+        """
+        Return True only if the element can actually receive pointer events right now.
+
+        Filters out elements that are in the DOM but not yet interactive — the most
+        common case being MUI/AG-Grid column menu icons that have
+        ``opacity: 0; pointer-events: none`` until their parent header is hovered.
+        Clicking such elements causes Playwright to wait the full default timeout
+        (30 s) before raising an actionability error.
+        """
+        try:
+            return await el.evaluate("""el => {
+                const s = window.getComputedStyle(el);
+                return (
+                    s.pointerEvents !== 'none' &&
+                    s.visibility    !== 'hidden' &&
+                    s.display       !== 'none' &&
+                    parseFloat(s.opacity) > 0
+                );
+            }""")
+        except Exception:
+            return True  # assume interactive when the check itself fails
 
     async def _score_element_against_semantic(self, el, semantic_name: str) -> int:
         """

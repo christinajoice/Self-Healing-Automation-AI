@@ -97,39 +97,66 @@ class LocatorDiscovery:
             locator = self._build_locator(locator_meta)
 
             if hover_before:
-                # Hover the container to reveal the hidden element (e.g. column-menu icon).
-                # Then move the mouse directly to the target using page.mouse so the
-                # container's CSS hover state is never dropped between the hover and click.
-                # (Playwright's locator.click() re-positions the mouse internally and can
-                # briefly leave the hovered area, causing the icon to disappear mid-click.)
+                clicked = False
+
+                # ── Step 1: scroll container into view and hover it ──────────
+                # Use locator.hover() (not page.hover()) so Playwright scrolls
+                # the element inside horizontally-scrollable grids correctly.
+                hover_locator = self.page.locator(hover_before).first
                 try:
-                    await self.page.hover(hover_before, timeout=3000)
-                    # Wait for the element to be attached to the DOM (replaces fixed 300ms)
+                    await hover_locator.scroll_into_view_if_needed(timeout=3000)
+                    await hover_locator.hover(timeout=3000)
+                    print(f"[PRE-HOVER] Hovered container '{hover_before}'")
+                except Exception as he:
+                    print(f"[WARN] Container hover failed ({he}); trying JS mouseover")
+                    # JS fallback: fire mouseover/mouseenter so CSS :hover rules fire
                     try:
-                        await locator.wait_for(state="attached", timeout=1500)
-                    except Exception:
-                        await self.page.wait_for_timeout(500)
+                        await self.page.evaluate(
+                            """sel => {
+                                const el = document.querySelector(sel);
+                                if (el) {
+                                    el.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+                                    el.dispatchEvent(new MouseEvent('mouseenter', {bubbles: true}));
+                                }
+                            }""",
+                            hover_before,
+                        )
+                        print(f"[PRE-HOVER] JS mouseover dispatched on '{hover_before}'")
+                    except Exception as je:
+                        print(f"[WARN] JS hover also failed: {je}")
 
-                    print(f"[PRE-HOVER] Hovered '{hover_before}' to reveal target")
+                # ── Step 2: fixed 500 ms — let CSS transition finish ─────────
+                await self.page.wait_for_timeout(500)
 
-                    # Get the icon's bounding box and click via mouse API to keep hover active
+                # ── Step 3: click via absolute coords (keeps hover active) ───
+                try:
                     box = await locator.bounding_box()
                     if box:
                         cx = box["x"] + box["width"] / 2
                         cy = box["y"] + box["height"] / 2
                         await self.page.mouse.move(cx, cy)
                         await self.page.mouse.click(cx, cy)
-                        print(f"[CLICK] '{locator_meta.get('value')}' via mouse (hover-reveal)")
+                        print(f"[CLICK] '{locator_meta.get('value')}' via mouse coords (hover-reveal)")
+                        clicked = True
                     else:
-                        # Element not visible — try force click as last resort
-                        print(f"[WARN] bounding_box() returned None; attempting force click")
-                        await locator.click(force=True, timeout=3000)
-                        print(f"[CLICK] '{locator_meta.get('value')}' via force click")
+                        print(f"[WARN] bounding_box() returned None after hover")
+                except Exception as ce:
+                    print(f"[WARN] mouse.click failed: {ce}")
 
-                except Exception as he:
-                    print(f"[WARN] Hover-reveal click failed: {he}; falling back to direct click")
-                    await locator.click()
-                    print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
+                # ── Step 4: force-click fallback (skips visibility checks) ───
+                if not clicked:
+                    try:
+                        await locator.click(force=True, timeout=5000)
+                        print(f"[CLICK] '{locator_meta.get('value')}' via force click")
+                        clicked = True
+                    except Exception as fe:
+                        print(f"[WARN] force click also failed: {fe}")
+
+                if not clicked:
+                    raise RuntimeError(
+                        f"Could not click hover-revealed element '{locator_meta.get('value')}' "
+                        f"after all strategies exhausted (hover selector: '{hover_before}')"
+                    )
             else:
                 await locator.click()
                 print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")

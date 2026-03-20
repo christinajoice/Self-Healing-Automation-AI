@@ -11,4 +11,3 @@ TC_02,3,click,column menu icon,Network group,high
 TC_02,4,click,filter,,high
 TC_02,5,enter,filter input text field,PATHWAY,high
 TC_02,6,click,apply,,high
-
