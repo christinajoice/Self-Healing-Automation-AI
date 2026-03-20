@@ -120,6 +120,30 @@ class LocatorDiscovery:
             print(f"[ERROR] Click failed for {locator_meta}: {e}")
             raise
 
+    @staticmethod
+    def _sanitize_css_selector(value: str) -> str:
+        """
+        Convert bare '#id' selectors containing CSS-invalid characters (e.g. ':',
+        '.', '[') into safe '[id="..."]' attribute selectors.
+
+        React / MUI auto-generate IDs like ':r1t:' which are valid HTML id values
+        but illegal in CSS id selector syntax (#:r1t: triggers a parse error).
+        """
+        import re
+        # Match a simple #id that may be followed by nothing or whitespace/combinators.
+        # CSS_SAFE_ID_RE: starts with #, followed by one or more non-whitespace chars.
+        # If the id portion contains any character that is not [a-zA-Z0-9_-] we must
+        # escape.  The most common culprit is ':' from React/MUI IDs.
+        def replace_id(m: re.Match) -> str:
+            raw_id = m.group(1)
+            # Only rewrite if the id contains characters that need escaping in CSS
+            if re.search(r"[^a-zA-Z0-9_\-]", raw_id):
+                escaped = raw_id.replace("'", "\\'")
+                return f"[id='{escaped}']"
+            return m.group(0)  # leave unchanged
+
+        return re.sub(r"#([^\s,>+~\[:.#]+)", replace_id, value)
+
     def _build_locator(self, locator_meta: dict):
         """
         Convert locator metadata to a Playwright locator
@@ -140,7 +164,11 @@ class LocatorDiscovery:
         if strategy in ("get_by_text", "text"):
             return self.page.get_by_text(value, exact=True)
         if strategy == "css":
-            return self.page.locator(value)
+            # Sanitize bare #id selectors that contain CSS-invalid characters
+            # (e.g. React auto-generated IDs like "#:r1t:").  Convert to the
+            # equivalent attribute selector so Playwright doesn't reject them.
+            sanitized = self._sanitize_css_selector(value)
+            return self.page.locator(sanitized)
         if strategy == "nth":
             # Positional strategy: nth-index among all elements matching value.
             # Used when row-scoped CSS cannot uniquely identify the target
