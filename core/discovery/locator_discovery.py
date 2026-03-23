@@ -212,18 +212,31 @@ class LocatorDiscovery:
         strategy = locator_meta["strategy"].lower()
         value = locator_meta["value"]
 
+        # Optional nth selector: -1 / "last" → .last, non-negative int → .nth(n)
+        # Used for elements like filter inputs where multiple matches exist
+        # (e.g. two "Filter value" inputs when two column filters are open) and
+        # we always want the most-recently-added one (last in DOM order).
+        nth = locator_meta.get("nth")
+
+        def _apply_nth(locator):
+            if nth == -1 or nth == "last":
+                return locator.last
+            if isinstance(nth, int) and nth >= 0:
+                return locator.nth(nth)
+            return locator
+
         if strategy in ("get_by_label", "label"):
-            return self.page.get_by_label(value)
+            return _apply_nth(self.page.get_by_label(value))
         if strategy in ("get_by_placeholder", "placeholder"):
-            return self.page.get_by_placeholder(value)
+            return _apply_nth(self.page.get_by_placeholder(value))
         if strategy in ("get_by_text", "text"):
-            return self.page.get_by_text(value, exact=True)
+            return _apply_nth(self.page.get_by_text(value, exact=True))
         if strategy == "css":
             # Sanitize bare #id selectors that contain CSS-invalid characters
             # (e.g. React auto-generated IDs like "#:r1t:").  Convert to the
             # equivalent attribute selector so Playwright doesn't reject them.
             sanitized = self._sanitize_css_selector(value)
-            return self.page.locator(sanitized)
+            return _apply_nth(self.page.locator(sanitized))
         if strategy == "nth":
             # Positional strategy: nth-index among all elements matching value.
             # Used when row-scoped CSS cannot uniquely identify the target

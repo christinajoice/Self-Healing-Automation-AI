@@ -12,6 +12,9 @@ class IntentClassifier:
         if any(word in text for word in ["message", "success", "error", "alert", "flash"]):
             return "message"
 
+        if any(word in text for word in ["column"]):
+            return "column_values"
+
         if any(word in text for word in ["button", "icon", "field", "link"]):
             return "locator"
 
