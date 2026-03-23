@@ -16,4 +16,4 @@ TC_02,8,click,Filter,,high
 TC_02,9,enter,filter value text field,GBD_CAID,high
 TC_02,10,click,apply,,high
 TC_02,11,validate,Network Group Column,PATHWAY,high
-TC_02,12,click,action icon,,high
+TC_02,12,click,action icon,PATHWAY,high

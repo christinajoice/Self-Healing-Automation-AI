@@ -227,6 +227,21 @@ class DOMScanner:
                     matched_signal = "parent-tooltip"
 
                 if matched_signal:
+                    # Skip elements inside a column/row header — they are structural
+                    # menu buttons (e.g. the 3-dot column menu), not row-level actions.
+                    try:
+                        ancestor_role = await el.evaluate(
+                            "el => { let p = el.parentElement; while (p) {"
+                            "  const r = p.getAttribute('role');"
+                            "  if (r === 'columnheader' || r === 'rowheader') return r;"
+                            "  p = p.parentElement; } return null; }"
+                        )
+                        if ancestor_role in ("columnheader", "rowheader"):
+                            print(f"[SKIP] '{semantic_name}': inside [{ancestor_role}], skipping")
+                            continue
+                    except Exception:
+                        pass
+
                     if el_id:
                         safe_id = self._css_escape(el_id)
                         print(f"[FOUND] {semantic_name} via clickable id ({matched_signal}) -> [id='{safe_id}']")
@@ -405,17 +420,21 @@ class DOMScanner:
                     "ArrowForwardIcon", "OpenInNew", "Launch",
                 ]
                 for testid in icon_testids:
-                    probe = f"button:has([data-testid='{testid}'])"
-                    matches = self.page.locator(probe)
-                    if await matches.count() > 0:
-                        btn = matches.first
-                        el_id = (await btn.get_attribute("id") or "").strip()
-                        if el_id:
-                            sel = f"[id='{self._css_escape(el_id)}']"
-                        else:
-                            sel = probe
-                        print(f"[FOUND] {semantic_name} via icon testid '{testid}' -> {sel}")
-                        return {"strategy": "css", "value": sel}
+                    # Try button wrapper first, then bare cell (MUI DataGrid puts SVG
+                    # directly inside role="cell" with no <button> wrapper)
+                    for probe in (
+                        f"button:has([data-testid='{testid}'])",
+                        f"[role='cell']:has([data-testid='{testid}'])",
+                        f"[role='gridcell']:has([data-testid='{testid}'])",
+                    ):
+                        matches = self.page.locator(probe)
+                        if await matches.count() > 0:
+                            # Target the SVG directly — the parent cell is broad but
+                            # only the icon area is clickable. aria-hidden="true" on
+                            # the SVG requires force=True to bypass actionability check.
+                            sel = f"svg[data-testid='{testid}']"
+                            print(f"[FOUND] {semantic_name} via icon testid '{testid}' -> {sel} (force)")
+                            return {"strategy": "css", "value": sel, "force": True}
 
                 # Second: look for button/link inside a [data-field='action'] gridcell
                 gridcells = self.page.locator("[role='gridcell'][data-field]")
@@ -633,6 +652,8 @@ class DOMScanner:
             "[role='switch']",
             "[role='menuitem']",
             "[role='link']",
+            "[role='cell']",      # MUI DataGrid — SVG icons sit directly in cells
+            "[role='gridcell']",
             "[tabindex='0']",
         ]
 
@@ -729,6 +750,7 @@ class DOMScanner:
                 await el.get_attribute("data-testid") or "",
                 await el.get_attribute("data-test") or "",
                 await el.get_attribute("data-cy") or "",
+                await el.get_attribute("data-field") or "",  # MUI DataGrid cell column field
                 # Tooltip attributes — collapsed sidebars and icon-only buttons
                 # often carry their human-readable label only here.
                 await el.get_attribute("data-tooltip") or "",
@@ -761,6 +783,27 @@ class DOMScanner:
             class_attr = await el.get_attribute("class") or ""
             if class_attr and self.tokens_match(semantic_name, class_attr, min_matches=1):
                 score += 1
+
+            # Child element attributes — catches icon-only buttons where the
+            # semantic signal is on a child SVG (e.g. data-testid="OpenInNewIcon")
+            # rather than the button itself.
+            try:
+                child_testid = await el.evaluate(
+                    "el => { const c = el.querySelector('[data-testid],[aria-label],[title]');"
+                    " if (!c) return '';"
+                    " return c.getAttribute('data-testid') || c.getAttribute('aria-label') || c.getAttribute('title') || ''; }"
+                )
+                if child_testid:
+                    if self.tokens_match(semantic_name, child_testid, min_matches=1):
+                        score += 3
+                    else:
+                        ACTION_SYNS = {"action", "open", "navigate", "view", "launch", "detail", "link", "new"}
+                        child_tokens = set(self.normalize(child_testid).split())
+                        sem_tokens = set(self.tokenize(semantic_name))
+                        if (child_tokens & ACTION_SYNS) and (sem_tokens & ACTION_SYNS):
+                            score += 2
+            except Exception:
+                pass
 
         except Exception:
             pass
@@ -818,6 +861,29 @@ class DOMScanner:
 
             if name:
                 return f"{base} {probe_sel}[name='{self._css_escape(name)}']"
+
+            # data-field — MUI DataGrid cells identify their column via data-field.
+            # Include role so the selector targets data cells only, not the column
+            # header which also carries data-field="action" on the same tag.
+            data_field = (await el.get_attribute("data-field") or "").strip()
+            if data_field:
+                role = (await el.get_attribute("role") or "").strip()
+                tag = await el.evaluate("el => el.tagName.toLowerCase()")
+                role_part = f"[role='{role}']" if role else ""
+                return f"{base} {tag}{role_part}[data-field='{self._css_escape(data_field)}']"
+
+            # Child data-testid — the SVG icon is aria-hidden so it is not
+            # directly addressable via normal locators. Target it explicitly
+            # with force=True so Playwright clicks the exact icon pixel.
+            try:
+                child_testid = await el.evaluate(
+                    "el => { const c = el.querySelector('[data-testid]'); "
+                    "return c ? c.getAttribute('data-testid') : ''; }"
+                )
+                if child_testid:
+                    return f"{base} svg[data-testid='{self._css_escape(child_testid)}']"
+            except Exception:
+                pass
 
             if total == 1:
                 return f"{base} {probe_sel}"

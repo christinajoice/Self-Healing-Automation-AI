@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchExecutionStatus } from "../api/client";
+import { fetchExecutionStatus, cancelExecution } from "../api/client";
 import type { ExecutionStatus as Status, ExecutionStep } from "../types/execution";
 
 interface Props {
@@ -12,6 +12,7 @@ function stateBadge(state: string) {
     RUNNING:   "badge-running",
     COMPLETED: "badge-completed",
     FAILED:    "badge-failed",
+    CANCELLED: "badge-skipped",
     UNKNOWN:   "badge-skipped",
   };
   return map[state] ?? "badge-skipped";
@@ -47,19 +48,31 @@ function formatTime(iso: string) {
   }
 }
 
+const TERMINAL_STATES = new Set(["COMPLETED", "FAILED", "CANCELLED"]);
+
 export default function ExecutionStatus({ executionId }: Props) {
   const [status, setStatus] = useState<Status | null>(null);
+  const [stopping, setStopping] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(async () => {
       const res = await fetchExecutionStatus(executionId);
       setStatus(res);
-      if (res.state === "COMPLETED" || res.state === "FAILED") {
+      if (TERMINAL_STATES.has(res.state)) {
         clearInterval(timer);
       }
     }, 2000);
     return () => clearInterval(timer);
   }, [executionId]);
+
+  const handleStop = async () => {
+    setStopping(true);
+    try {
+      await cancelExecution(executionId);
+    } catch {
+      // state will update via polling
+    }
+  };
 
   if (!status) return null;
 
@@ -72,7 +85,8 @@ export default function ExecutionStatus({ executionId }: Props) {
 
   const progressClass =
     status.state === "COMPLETED" ? "complete" :
-    status.state === "FAILED"    ? "failed"   : "";
+    status.state === "FAILED"    ? "failed"   :
+    status.state === "CANCELLED" ? "failed"   : "";
 
   return (
     <div className="card">
@@ -80,7 +94,7 @@ export default function ExecutionStatus({ executionId }: Props) {
       <div className="card-header">
         <span className="card-icon">⚡</span>
         <h2>Execution Status</h2>
-        <div className="card-header-meta">
+        <div className="card-header-meta" style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span
             className={`badge ${stateBadge(status.state)}`}
             style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
@@ -88,6 +102,24 @@ export default function ExecutionStatus({ executionId }: Props) {
             {status.state === "RUNNING" && <span className="pulse-dot" />}
             {status.state}
           </span>
+          {(status.state === "RUNNING" || status.state === "QUEUED") && (
+            <button
+              onClick={handleStop}
+              disabled={stopping}
+              style={{
+                padding: "4px 12px",
+                background: stopping ? "#555" : "#c0392b",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                cursor: stopping ? "not-allowed" : "pointer",
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              {stopping ? "Stopping…" : "⏹ Stop"}
+            </button>
+          )}
         </div>
       </div>
 
