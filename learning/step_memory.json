@@ -208,26 +208,26 @@
     "recommended_confidence": "high"
   },
   "adaaf7f54c8afc4a810894503db78924": {
-    "runs": 20,
+    "runs": 21,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 16,
+    "pass": 17,
     "fail": 4,
     "recommended_confidence": "medium"
   },
   "4659beab2911ba8a0790b36b1c6d8172": {
-    "runs": 20,
+    "runs": 21,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 16,
+    "pass": 17,
     "fail": 4,
     "recommended_confidence": "medium"
   },
   "92a914fc660dbe22897dd49f14afed1a": {
-    "runs": 15,
+    "runs": 16,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 15,
+    "pass": 16,
     "fail": 0,
     "recommended_confidence": "high"
   },
@@ -256,10 +256,10 @@
     "recommended_confidence": "medium"
   },
   "c84904e861a8df7f78ebfc6f8546cb96": {
-    "runs": 19,
+    "runs": 20,
     "healed": 1,
     "soft_fail": 0,
-    "pass": 19,
+    "pass": 20,
     "fail": 0,
     "recommended_confidence": "high"
   },
@@ -312,10 +312,10 @@
     "recommended_confidence": "high"
   },
   "7a307ffd85e1c19ea19dd43adc0c810b": {
-    "runs": 22,
+    "runs": 23,
     "healed": 0,
     "soft_fail": 0,
-    "pass": 22,
+    "pass": 23,
     "fail": 0,
     "recommended_confidence": "high"
   },
@@ -421,6 +421,78 @@
     "soft_fail": 0,
     "pass": 1,
     "fail": 4,
+    "recommended_confidence": "medium"
+  },
+  "c7361d3077e8f2510a1bb4bd3dba04ab": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "f72a93805f22e957a5db6d3ebc3b0527": {
+    "runs": 1,
+    "healed": 1,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "3d21b0cd339b89b29dedfc117ca704be": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "0633ae75d07ad53534de830846cf1d0e": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "9dc5c2fbc6471a6d0ce16bd8cd63d3c0": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "25480f72d3222ee847f0d216bdc69a0a": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "4056305ea733fc486b416a9379de3794": {
+    "runs": 2,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 2,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "efdea97b5e11919f503d1117fb5ed730": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 1,
+    "fail": 0,
+    "recommended_confidence": "high"
+  },
+  "fc5be334ecd989e2ff97761cf1691d38": {
+    "runs": 1,
+    "healed": 0,
+    "soft_fail": 0,
+    "pass": 0,
+    "fail": 1,
     "recommended_confidence": "medium"
   }
 }
