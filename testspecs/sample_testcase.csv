@@ -15,4 +15,4 @@ TC_02,8,click,Filter option in the dropdown,,high
 TC_02,9,enter,filter input text field,PATHWAY,high
 TC_02,10,click,apply,,high
 TC_02,11,validate,Network Group Column,PATHWAY,high
-TC_02,12,click,action icon,,high
+TC_02,12,click,action icon,PATHWAY,high

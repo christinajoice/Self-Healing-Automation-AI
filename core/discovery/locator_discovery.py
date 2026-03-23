@@ -158,8 +158,12 @@ class LocatorDiscovery:
                         f"after all strategies exhausted (hover selector: '{hover_before}')"
                     )
             else:
-                await locator.click()
-                print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}'")
+                if locator_meta.get("force"):
+                    await locator.click(force=True)
+                    print(f"[CLICK] '{locator_meta.get('value')}' force-click (aria-hidden element)")
+                else:
+                    await locator.click()
+                    print(f"[CLICK] '{locator_meta.get('value')}' using '{locator_meta.get('strategy')}')")
 
             if navigates:
                 # Wait for either provided selector or page DOM load
@@ -412,6 +416,8 @@ class LocatorDiscovery:
 
             # Try ancestor containers from tightest to broadest
             ANCESTOR_SCOPES = [
+                "[role='columnheader']",  # Must be first — column menu icons live here
+                "th",
                 "tr",
                 "li",
                 "[role='row']",

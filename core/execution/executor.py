@@ -7,6 +7,7 @@ import os
 import hashlib
 import asyncio
 from threading import Lock
+from pathlib import Path
 
 from core.discovery.locator_discovery import LocatorDiscovery
 from core.reporting.report_generator import ReportGenerator
@@ -45,8 +46,19 @@ class TestExecutor:
 
     def _save_learning_store(self):
         with self._learning_lock:
-            with open(LEARNING_STORE, "w") as f:
-                json.dump(self.learning, f, indent=2)
+            import tempfile
+            path = Path(LEARNING_STORE)
+            fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w") as f:
+                    json.dump(self.learning, f, indent=2)
+                os.replace(tmp_path, path)
+            except Exception:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+                raise
 
     def _step_fingerprint(self, step: Dict) -> str:
         raw = f"{step.get('action')}|{step.get('target')}|{step.get('data')}"
@@ -60,6 +72,7 @@ class TestExecutor:
         testcase: Dict,
         base_url: str,
         credentials: Optional[Dict] = None,
+        cancel_flag=None,
     ):
         # Reset per-run state so re-submitting the same test case without
         # restarting the server always executes all steps fresh.
@@ -85,6 +98,25 @@ class TestExecutor:
                 page = await context.new_page()
 
                 for idx, step in enumerate(testcase["steps"], start=1):
+                    # Check for cancellation before each step
+                    if cancel_flag and cancel_flag.is_set():
+                        print(f"[CANCELLED] Stop requested — skipping remaining steps from step {idx}")
+                        remaining = testcase["steps"][idx - 1:]
+                        for r_idx, r_step in enumerate(remaining, start=idx):
+                            results["steps"].append({
+                                "step": r_idx,
+                                "action": r_step["action"],
+                                "target": r_step.get("target"),
+                                "data": r_step.get("data"),
+                                "confidence": r_step.get("confidence", "high"),
+                                "status": "SKIPPED",
+                                "healed": False,
+                                "error": "Skipped: execution cancelled by user",
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                            })
+                        results["status"] = "CANCELLED"
+                        break
+
                     # Use step index as the within-run unique ID so that two steps
                     # with identical action/target/data (e.g. two "click apply" steps
                     # that apply different column filters) are never skipped.
@@ -287,6 +319,10 @@ class TestExecutor:
                     )
 
                 elif action == "enter":
+                    # If multiple elements match (e.g. two filter panels open at once),
+                    # use the last one — it is always the most recently opened input.
+                    if await locator.count() > 1:
+                        locator = locator.last
                     await locator.wait_for(state="visible", timeout=5000)
                     if credentials:
                         key = (data or "").strip().lower()
@@ -298,7 +334,25 @@ class TestExecutor:
                         )
                     else:
                         value = data
+                    # fill() works for most inputs (login, forms).
+                    # For React controlled inputs (e.g. MUI filter panels), fill() sets
+                    # the DOM value but React's internal state may not update because
+                    # onChange is never fired. In that case, fall back to keystroke typing.
                     await locator.fill(value)
+                    # Let React process the input event before checking
+                    await asyncio.sleep(0.1)
+                    actual = await locator.input_value()
+                    if actual != value:
+                        # React reset the value — DOM matches but state doesn't.
+                        # Fall back to keystroke typing which fires per-key events.
+                        print(f"[ENTER] fill() not accepted by React input, switching to press_sequentially")
+                        await locator.click()
+                        await locator.press("Control+a")
+                        await locator.press_sequentially(value, delay=30)
+                    else:
+                        # Also dispatch change event so React's onChange fires even
+                        # if it only listens to change (not input) events.
+                        await locator.dispatch_event("change")
 
                 elif action == "verify":
                     await locator.wait_for(state="visible", timeout=5000)
@@ -422,25 +476,39 @@ class TestExecutor:
                         );
                         if (!headerEl) return { found: false, reason: 'column header not found' };
 
-                        const colIdx = headerEl.getAttribute('aria-colindex');
-
-                        // Try role="cell" (MUI DataGrid) and role="gridcell" (standard)
                         let cells = [];
-                        if (colIdx) {
+
+                        // Strategy 1: MUI DataGrid data-field attribute (most reliable)
+                        const dataField = headerEl.getAttribute('data-field');
+                        if (dataField) {
                             cells = Array.from(document.querySelectorAll(
-                                `[role="cell"][aria-colindex="${colIdx}"], [role="gridcell"][aria-colindex="${colIdx}"]`
-                            ));
+                                `[data-field="${dataField}"]`
+                            )).filter(el => el.getAttribute('role') !== 'columnheader'
+                                        && !el.closest('[role="columnheader"]'));
                         }
 
-                        // Fallback: use positional column index across all rows
+                        // Strategy 2: aria-colindex on role=cell or role=gridcell
+                        if (cells.length === 0) {
+                            const colIdx = headerEl.getAttribute('aria-colindex');
+                            if (colIdx) {
+                                cells = Array.from(document.querySelectorAll(
+                                    `[aria-colindex="${colIdx}"]`
+                                )).filter(el => el.getAttribute('role') !== 'columnheader'
+                                            && !el.closest('[role="columnheader"]'));
+                            }
+                        }
+
+                        // Strategy 3: positional index across data rows
                         if (cells.length === 0) {
                             const colPos = headers.indexOf(headerEl);
                             if (colPos >= 0) {
-                                const rows = Array.from(
+                                const dataRows = Array.from(
                                     document.querySelectorAll('[role="row"]')
                                 ).filter(r => !r.querySelector('[role="columnheader"]'));
-                                cells = rows.map(r => {
-                                    const c = r.querySelectorAll('[role="cell"], [role="gridcell"]');
+                                cells = dataRows.map(r => {
+                                    const c = r.querySelectorAll(
+                                        '[role="cell"], [role="gridcell"], .MuiDataGrid-cell'
+                                    );
                                     return c[colPos] || null;
                                 }).filter(Boolean);
                             }

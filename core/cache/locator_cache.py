@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 from pathlib import Path
 
 CACHE_FILE = Path(__file__).parent / "locators.json"
@@ -19,8 +20,21 @@ class LocatorCache:
             self.cache = json.load(f)
 
     def _save_cache(self):
-        with open(self.cache_file, "w") as f:
-            json.dump(self.cache, f, indent=4)
+        # Write to a temp file in the same directory then atomically replace.
+        # This avoids PermissionError on OneDrive-synced folders where the
+        # sync process briefly holds a lock on the target file.
+        dir_ = self.cache_file.parent
+        fd, tmp_path = tempfile.mkstemp(dir=dir_, suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as f:
+                json.dump(self.cache, f, indent=4)
+            os.replace(tmp_path, self.cache_file)
+        except Exception:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
 
     # --- Existing single locator get/set ---
     def get(self, app_url: str, element_name: str):

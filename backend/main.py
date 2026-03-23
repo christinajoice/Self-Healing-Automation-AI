@@ -81,6 +81,9 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 HEADLESS = os.getenv("BROWSER_HEADLESS", "true").lower() != "false"
 executor = TestExecutor(headless=HEADLESS)
 
+# Per-execution cancellation flags
+_cancel_flags: dict = {}
+
 # --------------------------------------------------
 # 🔹 Health Check
 # --------------------------------------------------
@@ -174,6 +177,9 @@ async def upload_testcase(
     # --------------------------------------------------
     # 🔹 Background Execution (NEW)
     # --------------------------------------------------
+    cancel_flag = asyncio.Event()
+    _cancel_flags[execution_id] = cancel_flag
+
     background_tasks.add_task(
         run_testcase_background,
         execution_id,
@@ -181,12 +187,25 @@ async def upload_testcase(
         base_url,
         username,
         password,
+        cancel_flag,
     )
 
     return {
         "execution_id": execution_id,
         "status": "QUEUED",
     }
+
+# --------------------------------------------------
+# 🔹 Cancel Execution
+# --------------------------------------------------
+@app.post("/cancel_execution/{execution_id}")
+def cancel_execution(execution_id: str):
+    flag = _cancel_flags.get(execution_id)
+    if not flag:
+        raise HTTPException(status_code=404, detail="Execution not found")
+    flag.set()
+    update_status(execution_id, state="CANCELLED", message="Execution cancelled by user", progress=None)
+    return {"execution_id": execution_id, "status": "CANCELLED"}
 
 # --------------------------------------------------
 # 🔹 Execution Status API (Polling)
@@ -229,6 +248,7 @@ async def run_testcase_background(
     base_url: str,
     username: str,
     password: str,
+    cancel_flag: asyncio.Event = None,
 ):
     try:
         update_status(
@@ -247,14 +267,12 @@ async def run_testcase_background(
             }
             if username or password
             else None,
+            cancel_flag=cancel_flag,
         )
 
-        update_status(
-            execution_id,
-            state="COMPLETED",
-            message="Execution completed successfully",
-            progress=100,
-        )
+        final_state = "CANCELLED" if (cancel_flag and cancel_flag.is_set()) else "COMPLETED"
+        final_msg   = "Execution cancelled by user" if final_state == "CANCELLED" else "Execution completed successfully"
+        update_status(execution_id, state=final_state, message=final_msg, progress=100)
 
         execution_status[execution_id]["results"] = results
 

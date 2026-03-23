@@ -23,3 +23,10 @@ export const fetchReports = async () => {
   const res = await api.get<{ reports: ExecutionResult[] }>("/reports");
   return res.data;
 };
+
+export const cancelExecution = async (executionId: string) => {
+  const res = await api.post<{ execution_id: string; status: string }>(
+    `/cancel_execution/${executionId}`
+  );
+  return res.data;
+};
