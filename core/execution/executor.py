@@ -85,7 +85,10 @@ class TestExecutor:
                 page = await context.new_page()
 
                 for idx, step in enumerate(testcase["steps"], start=1):
-                    step_id = step.get("id") or self._step_fingerprint(step)
+                    # Use step index as the within-run unique ID so that two steps
+                    # with identical action/target/data (e.g. two "click apply" steps
+                    # that apply different column filters) are never skipped.
+                    step_id = step.get("id") or idx
                     if step_id in self._executed_steps:
                         print(f"[SKIP] Step {step_id} already executed, skipping")
                         continue
@@ -342,10 +345,37 @@ class TestExecutor:
             # Poll until the URL is stable for two consecutive checks.
             if current_url != pre_url:
                 await self._wait_for_url_stability(page, timeout=30)
+            else:
+                # Same-page action (e.g. filter Apply) — wait for any loading
+                # indicators to disappear so the UI is fully settled before the
+                # next step runs.  Covers MUI LinearProgress, role=progressbar,
+                # and common spinner class names.
+                await self._wait_for_loading_done(page)
         except AssertionError:
             if confidence != "high":
                 return
             raise
+
+    async def _wait_for_loading_done(self, page, timeout: int = 10000):
+        """Wait for common loading indicators to disappear after a same-page action."""
+        LOADING_SELECTORS = [
+            "[role='progressbar']",
+            ".MuiLinearProgress-root",
+            "[class*='loading']",
+            "[class*='spinner']",
+            "[class*='skeleton']",
+        ]
+        for sel in LOADING_SELECTORS:
+            try:
+                if await page.locator(sel).count() > 0:
+                    print(f"[WAIT] Loading indicator detected ({sel}), waiting for it to clear...")
+                    await page.wait_for_selector(sel, state="hidden", timeout=timeout)
+                    print(f"[WAIT] Loading indicator cleared.")
+                    break
+            except Exception:
+                pass
+        # Minimum settle time — lets React finish re-rendering after data loads
+        await asyncio.sleep(0.5)
 
     async def _wait_for_url_stability(self, page, timeout: int = 30):
         """Wait until the page URL stops changing (all redirects complete)."""

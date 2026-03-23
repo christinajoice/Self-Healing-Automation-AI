@@ -381,7 +381,49 @@ class DOMScanner:
         except Exception:
             pass
 
-        # 5️⃣ Nothing found
+        # 5️⃣ DataGrid action-column probe
+        # MUI / AG-Grid / custom grids render icon-only action buttons inside
+        # [role='gridcell'][data-field='action'] (or similar field names).
+        # These buttons carry no aria-label / title / text, so all prior scans
+        # miss them. Match by: a semantic token appears in the data-field value
+        # of the gridcell, OR the semantic explicitly mentions "action" / icon types.
+        ACTION_SYNONYMS = {"action", "navigate", "open", "view", "launch", "detail", "link"}
+        sem_tokens_set = set(self.tokenize(semantic_name))
+        if sem_tokens_set & ACTION_SYNONYMS or "icon" in semantic_name.lower():
+            try:
+                gridcells = self.page.locator("[role='gridcell'][data-field]")
+                gc_count = await gridcells.count()
+                for i in range(gc_count):
+                    cell = gridcells.nth(i)
+                    field = (await cell.get_attribute("data-field") or "").lower()
+                    # Match when any semantic token appears in the field name
+                    # OR when field name is "action" and we're looking for action/navigate icons
+                    field_tokens = set(self.normalize(field).split())
+                    if not (sem_tokens_set & field_tokens or
+                            (field in ("action", "actions") and sem_tokens_set & ACTION_SYNONYMS)):
+                        continue
+                    # Look for a button or link inside this cell
+                    for probe in ("button", "a", "[role='button']"):
+                        inner = cell.locator(probe)
+                        if await inner.count() > 0:
+                            btn = inner.first
+                            el_id = (await btn.get_attribute("id") or "").strip()
+                            aria = (await btn.get_attribute("aria-label") or "").strip()
+                            title_a = (await btn.get_attribute("title") or "").strip()
+                            if el_id:
+                                sel = f"[id='{self._css_escape(el_id)}']"
+                            elif aria:
+                                sel = f"[role='gridcell'][data-field='{field}'] {probe}[aria-label='{self._css_escape(aria)}']"
+                            elif title_a:
+                                sel = f"[role='gridcell'][data-field='{field}'] {probe}[title='{self._css_escape(title_a)}']"
+                            else:
+                                sel = f"[role='gridcell'][data-field='{field}'] {probe}"
+                            print(f"[FOUND] {semantic_name} via DataGrid action cell (data-field='{field}') -> {sel}")
+                            return {"strategy": "css", "value": sel}
+            except Exception:
+                pass
+
+        # 6️⃣ Nothing found
         print(f"[NOT FOUND] No locator discovered for: {semantic_name}")
         return None
 
@@ -418,6 +460,9 @@ class DOMScanner:
             # <th> or [role='columnheader'] is preferred over the whole header row.
             "th",
             "[role='columnheader']",
+            # Data grid cells — tighter than a full row; useful for finding
+            # action icons anchored to a specific cell value (e.g. "PATHWAY").
+            "[role='gridcell']",
             "tr",
             "li",
             "[role='row']",
@@ -441,10 +486,26 @@ class DOMScanner:
 
         for container_sel in CONTAINER_SELECTORS:
             try:
+                # Primary: visible text match (works for most elements)
                 containers = self.page.locator(
                     f"{container_sel}:has-text('{safe_anchor}')"
                 )
                 c_count = await containers.count()
+
+                # Fallback: MUI DataGrid / truncated cells render values as
+                # title/aria-label attributes rather than visible text.
+                # Try attribute-based containment when text match finds nothing.
+                if c_count == 0:
+                    for attr in ("title", "aria-label"):
+                        alt = self.page.locator(
+                            f"{container_sel}:has([{attr}='{safe_anchor}'])"
+                        )
+                        alt_count = await alt.count()
+                        if alt_count > 0:
+                            containers = alt
+                            c_count = alt_count
+                            break
+
                 if c_count == 0:
                     continue
 

@@ -333,9 +333,9 @@ class LocatorDiscovery:
             except TimeoutError:
                 candidate["failures"] = candidate.get("failures", 0) + 1
                 candidate["confidence"] = candidate.get("confidence", 1.0) * 0.9
-                print(f"[WARN] Context cached locator failed: {candidate['strategy']} → trying next")
+                print(f"[WARN] Context cached locator failed: {candidate['strategy']} -> trying next")
             except ValueError as ve:
-                print(f"[WARN] Context cached locator rejected: {candidate} → {ve}")
+                print(f"[WARN] Context cached locator rejected: {candidate} -> {ve}")
 
         # --- Rediscover using anchor-aware scan ---
         new_locator = await self.scanner.find_element_near_anchor(semantic_name, context_text)
