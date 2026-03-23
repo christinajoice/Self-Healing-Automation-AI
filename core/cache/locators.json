@@ -6,7 +6,7 @@
                 "value": "input[name='username']",
                 "confidence": 0.9,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:26.717937+00:00"
+                "last_used": "2026-03-23T07:06:44.444617+00:00"
             }
         ],
         "password field": [
@@ -15,7 +15,7 @@
                 "value": "input[name='password']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:34.984768+00:00"
+                "last_used": "2026-03-23T07:06:52.720121+00:00"
             }
         ],
         "login button": [
@@ -24,37 +24,44 @@
                 "value": "button:has-text('LOGIN')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:43.172391+00:00"
+                "last_used": "2026-03-23T07:07:00.932327+00:00"
             }
         ],
         "network adequacy": [
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
+                "confidence": 0.6561000000000001,
+                "failures": 4,
+                "last_used": "2026-03-20T13:17:10.396711+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
                 "confidence": 0.7290000000000001,
                 "failures": 3,
-                "last_used": "2026-03-20T13:17:10.396711+00:00"
+                "last_used": "2026-03-21T15:42:22.814051+00:00"
             },
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
                 "confidence": 0.81,
                 "failures": 2,
-                "last_used": "2026-03-21T15:42:22.814051+00:00"
+                "last_used": "2026-03-21T16:24:47.660019+00:00"
             },
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
                 "confidence": 0.9,
                 "failures": 1,
-                "last_used": "2026-03-21T16:24:47.660019+00:00"
+                "last_used": "2026-03-21T18:24:50.353019+00:00"
             },
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:44.839065+00:00"
+                "last_used": "2026-03-23T07:07:03.462806+00:00"
             }
         ],
         "column menu icon @ Network Group": [
@@ -62,9 +69,17 @@
                 "strategy": "css",
                 "value": "[id=':r2o:']",
                 "hover_before": "[role='columnheader']:has-text('Network Group')",
-                "confidence": 0.7290000000000001,
+                "confidence": 0.6561000000000001,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:55.122179+00:00"
+                "last_used": "2026-03-21T18:45:15.135812+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[id=':r2o:']",
+                "hover_before": "[role='row']:has-text('Network Group')",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-03-23T07:07:07.043634+00:00"
             }
         ],
         "filter option in the dropdown": [
@@ -73,7 +88,7 @@
                 "value": "li:has-text('Filter')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:56.867949+00:00"
+                "last_used": "2026-03-23T07:07:09.369728+00:00"
             }
         ],
         "filter input text field": [
@@ -82,7 +97,8 @@
                 "value": "Filter value",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:48:09.972651+00:00"
+                "last_used": "2026-03-23T07:07:20.486780+00:00",
+                "nth": -1
             }
         ],
         "apply": [
@@ -91,7 +107,7 @@
                 "value": "button:has-text('Apply')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:48:10.279843+00:00"
+                "last_used": "2026-03-23T07:07:20.792486+00:00"
             }
         ],
         "column menu icon @ Filing Type": [
@@ -101,7 +117,7 @@
                 "hover_before": "[role='columnheader']:has-text('Filing Type')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:48:06.867955+00:00"
+                "last_used": "2026-03-23T07:07:16.837833+00:00"
             }
         ],
         "filter": [
@@ -110,7 +126,7 @@
                 "value": "[id=':r2q:']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:48:08.667287+00:00"
+                "last_used": "2026-03-23T07:07:19.347435+00:00"
             }
         ],
         "network group": [
@@ -119,7 +135,7 @@
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:47:54.895515+00:00"
+                "last_used": "2026-03-23T07:07:06.589056+00:00"
             }
         ],
         "filing type column @ GBD_FFM": [
@@ -128,16 +144,7 @@
                 "value": "[aria-label='Filing Type']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T17:48:15.118811+00:00"
-            }
-        ],
-        "action icon": [
-            {
-                "strategy": "css",
-                "value": "[aria-label='Action']",
-                "confidence": 1.0,
-                "failures": 0,
-                "last_used": "2026-03-21T17:48:15.364989+00:00"
+                "last_used": "2026-03-23T07:07:22.486873+00:00"
             }
         ]
     },
@@ -148,7 +155,7 @@
                 "value": "input[name='username']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:33:49.957830+00:00"
+                "last_used": "2026-03-23T10:06:25.461524+00:00"
             }
         ],
         "password field": [
@@ -157,7 +164,7 @@
                 "value": "input[name='password']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:33:58.340923+00:00"
+                "last_used": "2026-03-23T10:06:33.612240+00:00"
             }
         ],
         "login button": [
@@ -166,16 +173,51 @@
                 "value": "button:has-text('LOGIN')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:34:07.457320+00:00"
+                "last_used": "2026-03-23T10:06:41.786625+00:00"
             }
         ],
         "Network Adequacy": [
             {
                 "strategy": "css",
                 "value": "[title='Network Adequacy']",
+                "confidence": 0.5904900000000002,
+                "failures": 1,
+                "last_used": "2026-03-23T09:58:27.849014+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
+                "confidence": 0.5904900000000002,
+                "failures": 5,
+                "last_used": "2026-03-23T09:18:09.966117+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
+                "confidence": 0.6561000000000001,
+                "failures": 4,
+                "last_used": "2026-03-23T09:21:00.745257+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
+                "confidence": 0.7290000000000001,
+                "failures": 3,
+                "last_used": "2026-03-23T09:36:54.559818+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
+                "confidence": 0.81,
+                "failures": 1,
+                "last_used": "2026-03-23T09:58:27.993259+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:35:47.069488+00:00"
+                "last_used": "2026-03-23T10:06:48.691264+00:00"
             }
         ],
         "Network Group": [
@@ -184,7 +226,7 @@
                 "value": "[title='Network Adequacy']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:35:51.005941+00:00"
+                "last_used": "2026-03-23T09:58:32.720074+00:00"
             }
         ],
         "column menu icon @ Network Group": [
@@ -192,9 +234,17 @@
                 "strategy": "css",
                 "value": "[id=':r2o:']",
                 "hover_before": "[role='columnheader']:has-text('Network Group')",
+                "confidence": 0.9,
+                "failures": 1,
+                "last_used": "2026-03-23T09:41:20.453939+00:00"
+            },
+            {
+                "strategy": "css",
+                "value": "[id=':r2o:']",
+                "hover_before": "[role='row']:has-text('Network Group')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:35:52.097777+00:00"
+                "last_used": "2026-03-23T09:58:36.962761+00:00"
             }
         ],
         "Filter option in the dropdown": [
@@ -203,16 +253,24 @@
                 "value": "li:has-text('Filter')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:35:55.791703+00:00"
+                "last_used": "2026-03-23T10:06:51.278583+00:00"
             }
         ],
         "filter input text field": [
             {
                 "strategy": "get_by_placeholder",
                 "value": "Filter value",
-                "confidence": 1.0,
+                "confidence": 0.81,
                 "failures": 0,
-                "last_used": "2026-03-21T15:36:04.565853+00:00"
+                "last_used": "2026-03-23T10:06:52.164822+00:00",
+                "nth": -1
+            },
+            {
+                "strategy": "css",
+                "value": "[id=':r2q:']",
+                "confidence": 0.81,
+                "failures": 1,
+                "last_used": "2026-03-23T09:06:10.642237+00:00"
             }
         ],
         "apply": [
@@ -221,7 +279,7 @@
                 "value": "button:has-text('Apply')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:36:00.219539+00:00"
+                "last_used": "2026-03-23T10:06:52.286130+00:00"
             }
         ],
         "column menu icon @ Filing Type": [
@@ -231,7 +289,7 @@
                 "hover_before": "[role='columnheader']:has-text('Filing Type')",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:36:01.859073+00:00"
+                "last_used": "2026-03-23T10:06:49.895989+00:00"
             }
         ],
         "filter": [
@@ -240,7 +298,25 @@
                 "value": "[id=':r2q:']",
                 "confidence": 1.0,
                 "failures": 0,
-                "last_used": "2026-03-21T15:36:04.310538+00:00"
+                "last_used": "2026-03-23T07:02:17.854844+00:00"
+            }
+        ],
+        "Filing Type Column @ GBD_FFM": [
+            {
+                "strategy": "css",
+                "value": "[aria-label='Filing Type']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-23T09:18:25.924143+00:00"
+            }
+        ],
+        "action icon": [
+            {
+                "strategy": "css",
+                "value": "[aria-label='Action']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-23T09:58:46.832064+00:00"
             }
         ]
     }

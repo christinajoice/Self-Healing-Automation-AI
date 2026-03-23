@@ -5,14 +5,14 @@ TC_01,3,enter,password field,HiLabs@123456,high
 TC_01,4,click,login button,,high
 TC_01,5,validate,Network Adequacy,,low
 TC_02,1,click,Network Adequacy,,high
-TC_02,2,validate,Network Group,,high
-TC_02,3,click,column menu icon,Network Group,high
-TC_02,4,click,Filter option in the dropdown,,high
-TC_02,5,enter,filter input text field,PATHWAY,high
-TC_02,6,click,apply,,high
-TC_02,7,click,column menu icon,Filing Type,high
-TC_02,8,click,filter,,high
-TC_02,9,enter,filter input text field,GBD_FFM,high
+TC_02,2,click,column menu icon,Filing Type,high
+TC_02,3,click,Filter option in the dropdown,,high
+TC_02,4,enter,filter input text field,QHP-FFM,high
+TC_02,5,click,apply,,high
+TC_02,6,validate,Filing Type Column,QHP-FFM,high
+TC_02,7,click,column menu icon,Network Group,high
+TC_02,8,click,Filter option in the dropdown,,high
+TC_02,9,enter,filter input text field,PATHWAY,high
 TC_02,10,click,apply,,high
-TC_02,11,validate,Filing Type Column,GBD_FFM,high
+TC_02,11,validate,Network Group Column,PATHWAY,high
 TC_02,12,click,action icon,,high

@@ -408,6 +408,72 @@ class TestExecutor:
                 assert data.lower() in (await page.content()).lower()
             elif intent == "url":
                 assert page.url
+            elif intent == "column_values":
+                import re as _re
+                # Strip trailing " column" / " col" from target to get the column header name
+                col_name = _re.sub(r"\s+col(umn)?\s*$", "", target, flags=_re.IGNORECASE).strip()
+                result = await page.evaluate(
+                    """([colName, expected]) => {
+                        const headers = Array.from(
+                            document.querySelectorAll('[role="columnheader"]')
+                        );
+                        const headerEl = headers.find(
+                            h => h.textContent.trim().toLowerCase().includes(colName.toLowerCase())
+                        );
+                        if (!headerEl) return { found: false, reason: 'column header not found' };
+
+                        const colIdx = headerEl.getAttribute('aria-colindex');
+
+                        // Try role="cell" (MUI DataGrid) and role="gridcell" (standard)
+                        let cells = [];
+                        if (colIdx) {
+                            cells = Array.from(document.querySelectorAll(
+                                `[role="cell"][aria-colindex="${colIdx}"], [role="gridcell"][aria-colindex="${colIdx}"]`
+                            ));
+                        }
+
+                        // Fallback: use positional column index across all rows
+                        if (cells.length === 0) {
+                            const colPos = headers.indexOf(headerEl);
+                            if (colPos >= 0) {
+                                const rows = Array.from(
+                                    document.querySelectorAll('[role="row"]')
+                                ).filter(r => !r.querySelector('[role="columnheader"]'));
+                                cells = rows.map(r => {
+                                    const c = r.querySelectorAll('[role="cell"], [role="gridcell"]');
+                                    return c[colPos] || null;
+                                }).filter(Boolean);
+                            }
+                        }
+
+                        if (cells.length === 0)
+                            return { found: false, reason: 'no data cells found for column' };
+
+                        const failing = cells
+                            .map(c => c.textContent.trim())
+                            .filter(t => t.length > 0 && !t.includes(expected));
+
+                        return {
+                            found: true,
+                            total: cells.length,
+                            failing: failing
+                        };
+                    }""",
+                    [col_name, data],
+                )
+                if not result.get("found"):
+                    raise AssertionError(
+                        f"Column '{col_name}' not found on page: {result.get('reason')}"
+                    )
+                failing = result.get("failing", [])
+                if failing:
+                    raise AssertionError(
+                        f"Filter validation failed: {len(failing)} cell(s) in '{col_name}' "
+                        f"do not contain '{data}'. Sample: {failing[:3]}"
+                    )
+                print(
+                    f"[VALIDATE] All {result['total']} visible '{col_name}' cells contain '{data}' ✓"
+                )
             elif intent == "locator":
                 await locator.wait_for(state="visible", timeout=5000)
             return True

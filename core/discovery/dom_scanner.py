@@ -279,6 +279,10 @@ class DOMScanner:
             "link", "meta", "script", "style", "head", "title",
             "base", "noscript", "template", "slot", "html", "body",
         }
+        # Roles that are structural/header — matching their aria-label would click
+        # the column header instead of a data-row icon (e.g. aria-label='Action'
+        # on a columnheader matches before the row icon button).
+        NON_INTERACTIVE_ROLES_LABEL = {"columnheader", "rowheader", "row", "grid", "treegrid"}
         LABEL_ATTR_SELECTORS = [
             "[title]",
             "[aria-label]",
@@ -296,6 +300,9 @@ class DOMScanner:
                     try:
                         tag = (await el.evaluate("el => el.tagName.toLowerCase()")).strip()
                         if tag in NON_INTERACTIVE_TAGS_LABEL:
+                            continue
+                        role = (await el.get_attribute("role") or "").strip()
+                        if role in NON_INTERACTIVE_ROLES_LABEL:
                             continue
                         attr_name = attr_sel.strip("[]")
                         attr_val = (await el.get_attribute(attr_name) or "").strip()
@@ -391,18 +398,35 @@ class DOMScanner:
         sem_tokens_set = set(self.tokenize(semantic_name))
         if sem_tokens_set & ACTION_SYNONYMS or "icon" in semantic_name.lower():
             try:
+                # First: look for a button wrapping a known icon test-id
+                # (e.g. MUI renders <button><svg data-testid="OpenInNewIcon"/></button>)
+                icon_testids = [
+                    "OpenInNewIcon", "LaunchIcon", "NavigateNextIcon",
+                    "ArrowForwardIcon", "OpenInNew", "Launch",
+                ]
+                for testid in icon_testids:
+                    probe = f"button:has([data-testid='{testid}'])"
+                    matches = self.page.locator(probe)
+                    if await matches.count() > 0:
+                        btn = matches.first
+                        el_id = (await btn.get_attribute("id") or "").strip()
+                        if el_id:
+                            sel = f"[id='{self._css_escape(el_id)}']"
+                        else:
+                            sel = probe
+                        print(f"[FOUND] {semantic_name} via icon testid '{testid}' -> {sel}")
+                        return {"strategy": "css", "value": sel}
+
+                # Second: look for button/link inside a [data-field='action'] gridcell
                 gridcells = self.page.locator("[role='gridcell'][data-field]")
                 gc_count = await gridcells.count()
                 for i in range(gc_count):
                     cell = gridcells.nth(i)
                     field = (await cell.get_attribute("data-field") or "").lower()
-                    # Match when any semantic token appears in the field name
-                    # OR when field name is "action" and we're looking for action/navigate icons
                     field_tokens = set(self.normalize(field).split())
                     if not (sem_tokens_set & field_tokens or
                             (field in ("action", "actions") and sem_tokens_set & ACTION_SYNONYMS)):
                         continue
-                    # Look for a button or link inside this cell
                     for probe in ("button", "a", "[role='button']"):
                         inner = cell.locator(probe)
                         if await inner.count() > 0:
