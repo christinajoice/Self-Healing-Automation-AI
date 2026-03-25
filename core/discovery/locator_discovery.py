@@ -38,7 +38,16 @@ class LocatorDiscovery:
         ]
 
         # --- Try cached locators first ---
-        for candidate in sorted(candidates, key=lambda x: -x.get("confidence", 1.0)):
+        # Skip candidates that have failed repeatedly — they are almost certainly
+        # session-dependent (e.g. React auto-generated IDs like :r5:) and will
+        # never match again. Trying them wastes time and produces noisy warnings.
+        FAILURE_SKIP_THRESHOLD = 3
+        viable = [c for c in candidates if c.get("failures", 0) < FAILURE_SKIP_THRESHOLD]
+        stale  = [c for c in candidates if c.get("failures", 0) >= FAILURE_SKIP_THRESHOLD]
+        if stale:
+            print(f"[CACHE] Skipping {len(stale)} stale candidate(s) for '{semantic_name}' (failures >= {FAILURE_SKIP_THRESHOLD})")
+
+        for candidate in sorted(viable, key=lambda x: -x.get("confidence", 1.0)):
             try:
                 locator = self._build_locator(candidate)
                 count = await locator.count()
@@ -53,10 +62,11 @@ class LocatorDiscovery:
                     if visible_count == 0:
                         raise TimeoutError("Locator exists but is not visible")
 
-                # Success → update metadata
+                # Success → reset failures and purge stale entries from cache
                 candidate["failures"] = 0
                 candidate["last_used"] = datetime.now(timezone.utc).isoformat()
-                self.cache.set(self.app_url, semantic_name, candidates)
+                surviving = [c for c in candidates if c.get("failures", 0) < FAILURE_SKIP_THRESHOLD]
+                self.cache.set(self.app_url, semantic_name, surviving)
                 print(f"[CACHED] Using cached locator for '{semantic_name}': {candidate}")
                 return candidate
 

@@ -34,6 +34,7 @@ def parse_testcase_file(file_path: str) -> List[Dict]:
             "action": row["Action"],
             "target": row["Target"],
             "data": row["Data"] if row["Data"] != "" else None,
+            "confidence": str(row.get("Confidence", "high") or "high").strip().lower() or "high",
         }
 
         testcases.setdefault(tc_id, []).append(step_data)

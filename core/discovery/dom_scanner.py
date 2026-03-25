@@ -161,6 +161,35 @@ class DOMScanner:
         # Also includes [role=button] for custom interactive components,
         # [role=menuitem] for MUI/Ant dropdown menu items (e.g. DataGrid column menu),
         # and elements with aria-label / tooltip for icon-only navigation buttons.
+
+        # Priority pre-scan: find <button> elements whose VISIBLE TEXT matches the
+        # semantic name before scanning all clickables.  This prevents a false match
+        # where an unrelated element (e.g. a toggle with aria-label="Specialty" and
+        # id="member-radius-rings-toggle") appears earlier in DOM order and gets
+        # returned instead of the actual button whose label is the visible text.
+        buttons_only = self.page.locator("button")
+        button_only_count = await buttons_only.count()
+        for i in range(button_only_count):
+            btn = buttons_only.nth(i)
+            try:
+                btn_visible_text = (await btn.inner_text()).strip()
+                if not btn_visible_text:
+                    continue
+                if self.tokens_match(semantic_name, btn_visible_text, min_matches=1):
+                    btn_id = (await btn.get_attribute("id") or "").strip()
+                    # Only use the button's own ID when it is semantically related
+                    # to the element name (skip auto-generated / framework IDs).
+                    if btn_id and self.tokens_match(semantic_name, btn_id, min_matches=1):
+                        safe_id = self._css_escape(btn_id)
+                        print(f"[FOUND] {semantic_name} via button text+id -> [id='{safe_id}']")
+                        return {"strategy": "css", "value": f"[id='{safe_id}']"}
+                    safe_text = self._css_escape(btn_visible_text)
+                    selector = f"button:has-text('{safe_text}')"
+                    print(f"[FOUND] {semantic_name} via button visible text -> {selector}")
+                    return {"strategy": "css", "value": selector}
+            except Exception:
+                continue
+
         clickables = self.page.locator(
             "button, a, input[type=submit], [role='button'], [role='menuitem'], [role='option']"
         )
@@ -496,6 +525,42 @@ class DOMScanner:
         Falls back to the global find_element() scan when no container matches.
         """
         safe_anchor = self._css_escape(anchor_text)
+
+        # ── Dropdown / menu option shortcut ──────────────────────────────────
+        # When the semantic target describes a list/dropdown/menu and the anchor
+        # text is the option label itself (e.g. target="drop down list menu",
+        # anchor="Specialty"), the anchor IS the element to click.
+        # Scope ONLY to open overlay containers (MUI Menu/Select portals) to avoid
+        # false matches with other "Specialty" elements elsewhere on the page.
+        DROPDOWN_KEYWORDS = {"drop", "dropdown", "menu", "list", "option", "select"}
+        sem_tokens_set = set(self.tokenize(semantic_name))
+        if sem_tokens_set & DROPDOWN_KEYWORDS:
+            safe_opt = self._css_escape(anchor_text)
+            # Ordered from tightest overlay container to most general
+            MENU_CONTAINERS = [
+                "[role='listbox']",
+                "[role='menu']",
+                ".MuiMenu-list",
+                ".MuiPopover-root",
+                ".MuiMenu-root",
+                "[data-popper-placement]",
+            ]
+            OPTION_PROBES = [
+                f"[role='option']:has-text('{safe_opt}')",
+                f"[role='menuitem']:has-text('{safe_opt}')",
+                f"button:has-text('{safe_opt}')",
+                f"li:has-text('{safe_opt}')",
+            ]
+            for container in MENU_CONTAINERS:
+                for probe in OPTION_PROBES:
+                    sel = f"{container} {probe}"
+                    try:
+                        count = await self.page.locator(sel).count()
+                        if count > 0:
+                            print(f"[FOUND] '{semantic_name}' option in open menu -> {sel}")
+                            return {"strategy": "css", "value": sel}
+                    except Exception:
+                        continue
 
         # Ordered from tightest/most-specific to most-general containers.
         CONTAINER_SELECTORS: List[str] = [
