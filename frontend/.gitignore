@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# testcase files
+/testspecs
+/uploads
+
+# locators and self learning memories which differs from application to application
+locators.json
+/learning

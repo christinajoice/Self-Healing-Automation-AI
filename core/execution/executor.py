@@ -213,6 +213,186 @@ class TestExecutor:
         return results
 
     # ------------------------------------------------------------------
+    # 🔹 MULTI-TESTCASE RUNNER (single browser session)
+    # ------------------------------------------------------------------
+    async def run_all_testcases(
+        self,
+        testcases: list,
+        base_url: str,
+        credentials: Optional[Dict] = None,
+        cancel_flag=None,
+    ) -> list:
+        """
+        Run a list of test cases in ONE shared browser session so that login
+        state (cookies, session tokens) carries through from TC to TC.
+        Generates a single combined HTML/JSON report at the end.
+        """
+        self._load_learning_store()
+        all_results = []
+
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(
+                    headless=self.headless,
+                    args=["--ignore-certificate-errors", "--disable-web-security"],
+                )
+                context = await browser.new_context(ignore_https_errors=True)
+                page = await context.new_page()
+
+                for testcase in testcases:
+                    if cancel_flag and cancel_flag.is_set():
+                        break
+                    self._executed_steps = set()
+                    tc_results = await self._execute_on_page(
+                        page, testcase, base_url, credentials, cancel_flag
+                    )
+                    self.reporter.log_testcase(tc_results)
+                    all_results.append(tc_results)
+
+                    # If this TC failed on a high-confidence step, skip all
+                    # subsequent TCs — they share the same browser session and
+                    # are almost certainly in an unusable state (e.g. not logged in).
+                    if tc_results.get("status") == "FAIL":
+                        remaining_tcs = testcases[testcases.index(testcase) + 1:]
+                        for skipped_tc in remaining_tcs:
+                            skipped_result = {
+                                "testcase_id": skipped_tc["testcase_id"],
+                                "status": "SKIPPED",
+                                "start_time": datetime.now(timezone.utc).isoformat(),
+                                "end_time": datetime.now(timezone.utc).isoformat(),
+                                "steps": [
+                                    {
+                                        "step": s.get("step", i + 1),
+                                        "action": s["action"],
+                                        "target": s.get("target"),
+                                        "data": s.get("data"),
+                                        "confidence": s.get("confidence", "high"),
+                                        "status": "SKIPPED",
+                                        "healed": False,
+                                        "error": f"Skipped: {tc_results['testcase_id']} failed",
+                                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                                    }
+                                    for i, s in enumerate(skipped_tc.get("steps", []))
+                                ],
+                                "error": f"Skipped: {tc_results['testcase_id']} failed",
+                            }
+                            self.reporter.log_testcase(skipped_result)
+                            all_results.append(skipped_result)
+                            print(f"[SKIP] {skipped_tc['testcase_id']} skipped — {tc_results['testcase_id']} failed")
+                        break
+
+                await browser.close()
+
+        except Exception as e:
+            print(f"[ERROR] Browser session failed: {e}")
+            if all_results and all_results[-1].get("end_time") is None:
+                all_results[-1]["status"] = "FAIL"
+                all_results[-1]["error"] = str(e)
+                all_results[-1]["end_time"] = datetime.now(timezone.utc).isoformat()
+
+        # Write ONE combined report covering every test case
+        self.reporter.generate_json()
+        self.reporter.generate_html()
+        self._save_learning_store()
+        return all_results
+
+    async def _execute_on_page(
+        self,
+        page,
+        testcase: Dict,
+        base_url: str,
+        credentials: Optional[Dict],
+        cancel_flag,
+    ) -> Dict:
+        """Execute all steps of one test case on an already-open browser page."""
+        results = {
+            "testcase_id": testcase["testcase_id"],
+            "status": "PASS",
+            "start_time": datetime.now(timezone.utc).isoformat(),
+            "end_time": None,
+            "steps": [],
+            "error": None,
+        }
+
+        for idx, step in enumerate(testcase["steps"], start=1):
+            if cancel_flag and cancel_flag.is_set():
+                remaining = testcase["steps"][idx - 1:]
+                for r_idx, r_step in enumerate(remaining, start=idx):
+                    results["steps"].append({
+                        "step": r_idx,
+                        "action": r_step["action"],
+                        "target": r_step.get("target"),
+                        "data": r_step.get("data"),
+                        "confidence": r_step.get("confidence", "high"),
+                        "status": "SKIPPED",
+                        "healed": False,
+                        "error": "Skipped: execution cancelled by user",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    })
+                results["status"] = "CANCELLED"
+                break
+
+            step_id = step.get("id") or idx
+            if step_id in self._executed_steps:
+                continue
+
+            fingerprint = self._step_fingerprint(step)
+            learned = self.learning.get(fingerprint, {})
+            confidence = step.get(
+                "confidence", learned.get("recommended_confidence", "high")
+            )
+
+            step_result = {
+                "step": idx,
+                "action": step["action"],
+                "target": step.get("target"),
+                "data": step.get("data"),
+                "confidence": confidence,
+                "status": "PASS",
+                "healed": False,
+                "error": None,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+
+            try:
+                healed = await self.execute_step(
+                    page, step, base_url, confidence, credentials
+                )
+                step_result["healed"] = healed
+                self._executed_steps.add(step_id)
+                self._record_learning(fingerprint, healed=healed, soft_fail=False, passed=True)
+
+            except Exception as e:
+                step_result["status"] = "FAIL"
+                step_result["error"] = str(e)
+                self._record_learning(fingerprint, healed=False, soft_fail=False, passed=False)
+                results["status"] = "FAIL"
+                results["error"] = str(e)
+                results["failed_step"] = step_result
+
+            results["steps"].append(step_result)
+
+            if step_result["status"] == "FAIL" and confidence == "high":
+                print(f"[SKIP] High-confidence step {idx} failed — skipping remaining steps in {testcase['testcase_id']}")
+                remaining = testcase["steps"][idx:]
+                for r_idx, r_step in enumerate(remaining, start=idx + 1):
+                    results["steps"].append({
+                        "step": r_idx,
+                        "action": r_step["action"],
+                        "target": r_step.get("target"),
+                        "data": r_step.get("data"),
+                        "confidence": r_step.get("confidence", "high"),
+                        "status": "SKIPPED",
+                        "healed": False,
+                        "error": f"Skipped: step {idx} failed with high confidence",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    })
+                break
+
+        results["end_time"] = datetime.now(timezone.utc).isoformat()
+        return results
+
+    # ------------------------------------------------------------------
     # 🔹 STEP EXECUTION
     # ------------------------------------------------------------------
     async def execute_step(
@@ -384,9 +564,11 @@ class TestExecutor:
     # 🔹 POST ACTION CHECK
     # ------------------------------------------------------------------
     async def _post_action_check(self, page, pre_url, pre_dom, confidence, navigates=False):
-        # First wait — let the initial network burst settle
+        # First wait — let the initial network burst settle.
+        # Use a short timeout: SPAs with background polling never reach true
+        # networkidle, so a long timeout just burns time on every action.
         try:
-            await page.wait_for_load_state("networkidle", timeout=8000)
+            await page.wait_for_load_state("networkidle", timeout=3000)
         except Exception:
             pass
 
@@ -399,24 +581,46 @@ class TestExecutor:
             # Poll until the URL is stable for two consecutive checks.
             if current_url != pre_url:
                 await self._wait_for_url_stability(page, timeout=30)
-            else:
-                # Same-page action (e.g. filter Apply) — wait for any loading
-                # indicators to disappear so the UI is fully settled before the
-                # next step runs.  Covers MUI LinearProgress, role=progressbar,
-                # and common spinner class names.
-                await self._wait_for_loading_done(page)
+
+            # Always wait for loading indicators after every click — covers both
+            # same-page actions (filter Apply, tab switch) AND post-navigation
+            # data fetches (e.g. progress bar that appears after page load).
+            await self._wait_for_loading_done(page)
+
+            # Re-check URL after loading: for login/SSO clicks the 3 s networkidle
+            # window expires before the redirect starts, so `current_url` above still
+            # shows the login URL.  By the time `_wait_for_loading_done` finishes the
+            # redirect has completed but `_wait_for_url_stability` was never called.
+            # Detect this late redirect and wait for full page stability now.
+            post_load_url = page.url
+            if post_load_url != pre_url and post_load_url != current_url:
+                print(f"[POST-LOAD] Late redirect detected ({current_url} → {post_load_url}), waiting for stability…")
+                await self._wait_for_url_stability(page, timeout=20)
         except AssertionError:
             if confidence != "high":
                 return
             raise
 
     async def _wait_for_loading_done(self, page, timeout: int = 10000):
-        """Wait for common loading indicators to disappear after a same-page action."""
+        """Wait for common loading indicators to disappear after any click action.
+
+        A short initial pause is intentional: progress bars and spinners are
+        typically injected into the DOM ~100-300 ms after the triggering click.
+        Checking immediately would miss them and race ahead to the next step.
+        """
+        # Brief pause so React/MUI has time to inject any loading indicator
+        await asyncio.sleep(0.3)
+
         LOADING_SELECTORS = [
             "[role='progressbar']",
             ".MuiLinearProgress-root",
-            "[class*='loading']",
-            "[class*='spinner']",
+            ".MuiCircularProgress-root",
+            # Use specific class names rather than [class*='loading'] — that wildcard
+            # matches permanent wrapper elements (e.g. "data-loading-container") and
+            # causes a spurious 10 s timeout on every click action.
+            ".loading-overlay",
+            ".loading-spinner",
+            "[data-loading='true']",
             "[class*='skeleton']",
         ]
         for sel in LOADING_SELECTORS:
@@ -429,27 +633,40 @@ class TestExecutor:
             except Exception:
                 pass
         # Minimum settle time — lets React finish re-rendering after data loads
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.3)
 
     async def _wait_for_url_stability(self, page, timeout: int = 30):
-        """Wait until the page URL stops changing (all redirects complete)."""
+        """Wait until the page URL stops changing (all redirects complete).
+        Requires two consecutive stable readings to avoid declaring stable
+        mid-redirect during multi-hop SSO flows.
+        """
         import time
         deadline = time.monotonic() + timeout
         prev_url = page.url
+        stable_count = 0
+        await asyncio.sleep(0.5)
         while time.monotonic() < deadline:
-            await asyncio.sleep(1.0)
             try:
                 curr_url = page.url
             except Exception:
                 break
             if curr_url == prev_url:
-                # URL stable — wait for network to go idle on this final page
-                try:
-                    await page.wait_for_load_state("networkidle", timeout=10000)
-                except Exception:
-                    pass
-                return
+                stable_count += 1
+                if stable_count >= 2:
+                    # URL stable for two consecutive checks — wait for page load
+                    try:
+                        await page.wait_for_load_state("domcontentloaded", timeout=8000)
+                    except Exception:
+                        pass
+                    try:
+                        await page.wait_for_load_state("networkidle", timeout=4000)
+                    except Exception:
+                        pass
+                    return
+            else:
+                stable_count = 0
             prev_url = curr_url
+            await asyncio.sleep(0.5)
 
     # ------------------------------------------------------------------
     # 🔹 VALIDATION ENGINE
@@ -540,7 +757,7 @@ class TestExecutor:
                         f"do not contain '{data}'. Sample: {failing[:3]}"
                     )
                 print(
-                    f"[VALIDATE] All {result['total']} visible '{col_name}' cells contain '{data}' ✓"
+                    f"[VALIDATE] All {result['total']} visible '{col_name}' cells contain '{data}' OK"
                 )
             elif intent == "locator":
                 await locator.wait_for(state="visible", timeout=5000)

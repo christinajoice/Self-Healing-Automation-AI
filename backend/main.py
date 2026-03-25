@@ -124,12 +124,9 @@ async def upload_testcase(
     except Exception as e:
         raise HTTPException(500, f"Failed to save uploaded file: {e}")
     # --------------------------------------------------
-    # 🔹 Parse CSV (UNCHANGED)
+    # 🔹 Parse CSV — group rows by TestCaseID
     # --------------------------------------------------
-    testcase_dict = {
-        "testcase_id": file.filename,
-        "steps": [],
-    }
+    testcase_list = []
 
     try:
         with file_path.open(newline="", encoding="utf-8") as csvfile:
@@ -142,17 +139,36 @@ async def upload_testcase(
             if not {"action", "target"}.issubset(headers):
                 raise HTTPException(400, "CSV must contain action and target columns")
 
+            testcases_by_id: dict = {}
             for raw_row in reader:
-                row = {k.strip().lower(): v for k, v in raw_row.items()}
+                row = {k.strip().lower(): (v or "").strip() for k, v in raw_row.items()}
 
-                # 🔹 Credential injection (UNCHANGED)
+                # Determine which test case this row belongs to
+                tc_id = row.get("testcaseid", "").strip() or file.filename
+
+                # Credential injection
                 if row.get("action") == "enter":
-                    if row.get("target") == "username field" and username:
+                    if row.get("target") == "username input text field" and username:
                         row["data"] = username
-                    elif row.get("target") == "password field" and password:
+                    elif row.get("target") == "password input text field" and password:
                         row["data"] = password
 
-                testcase_dict["steps"].append(row)
+                step = {
+                    "step": int(row.get("step") or 0),
+                    "action": row.get("action", ""),
+                    "target": row.get("target", ""),
+                    "data": row.get("data") if row.get("data", "") != "" else None,
+                    "confidence": row.get("confidence", "high") or "high",
+                }
+                testcases_by_id.setdefault(tc_id, []).append(step)
+
+            testcase_list = [
+                {
+                    "testcase_id": tc_id,
+                    "steps": sorted(steps, key=lambda x: x["step"]),
+                }
+                for tc_id, steps in testcases_by_id.items()
+            ]
 
     except HTTPException:
         raise
@@ -183,7 +199,7 @@ async def upload_testcase(
     background_tasks.add_task(
         run_testcase_background,
         execution_id,
-        testcase_dict,
+        testcase_list,
         base_url,
         username,
         password,
@@ -244,7 +260,7 @@ def get_reports():
 # --------------------------------------------------
 async def run_testcase_background(
     execution_id: str,
-    testcase_dict: dict,
+    testcase_list: list,
     base_url: str,
     username: str,
     password: str,
@@ -258,8 +274,8 @@ async def run_testcase_background(
             progress=10,
         )
 
-        results = await executor.run_testcase(
-            testcase=testcase_dict,
+        all_results = await executor.run_all_testcases(
+            testcases=testcase_list,
             base_url=base_url,
             credentials={
                 "username": username,
@@ -274,7 +290,12 @@ async def run_testcase_background(
         final_msg   = "Execution cancelled by user" if final_state == "CANCELLED" else "Execution completed successfully"
         update_status(execution_id, state=final_state, message=final_msg, progress=100)
 
-        execution_status[execution_id]["results"] = results
+        # Store per-TC breakdown plus an overall status
+        overall = "PASS" if all(r.get("status") == "PASS" for r in all_results) else "FAIL"
+        execution_status[execution_id]["results"] = {
+            "status": overall,
+            "testcases": all_results,
+        }
 
     except Exception as e:
         update_status(

@@ -1,0 +1,20 @@
+﻿TestCaseID,Step,Action,Target,Data,Confidence
+TC_01,1,open,login page,,high
+TC_01,2,enter,Username input text field,christina.joice@hilabs.com,high
+TC_01,4,enter,Password input text field,HiLabs@123456,high
+TC_01,5,click,Login button,,high
+TC_01,6,validate,Network Adequacy,,low
+TC_02,1,click,Network Adequacy,,high
+TC_02,2,validate,Network Group,,high
+TC_02,3,click,column menu icon,Filing Type,high
+TC_02,4,click,Filter,,high
+TC_02,5,enter,filter value text field,QHP-FFM,high
+TC_02,6,click,apply,,high
+TC_02,7,click,column menu icon,Network Group,high
+TC_02,8,click,Filter,,high
+TC_02,9,enter,filter value text field,PATHWAY,high
+TC_02,10,click,apply,,high
+TC_02,11,validate,Network Group Column,PATHWAY,high
+TC_02,12,click,action icon,PATHWAY,high
+TC_03,1,click,button,View By,high
+TC_03,2,click,Specialty button,,high
