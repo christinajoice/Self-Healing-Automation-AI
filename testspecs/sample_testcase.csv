@@ -15,5 +15,7 @@ TC_02,7,click,column menu icon,Filing Type,high
 TC_02,8,click,Filter,,high
 TC_02,9,enter,filter value text field,GBD_CAID,high
 TC_02,10,click,apply,,high
-TC_02,11,validate,Network Group Column,PATHWAY,high
-TC_02,12,click,action icon,PATHWAY,high
+TC_02,11,validate,Network Group Column,LOUISIANA_MEDICAID_NETWORK,high
+TC_02,12,click,action icon,LOUISIANA_MEDICAID_NETWORK,high
+TC_03,1,click,view by drop down,,high
+TC_03,2,click,Menu option,Specialty,high
