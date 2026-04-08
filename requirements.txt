@@ -10,3 +10,12 @@ pytest
 allure-pytest
 python-multipart
 requests
+pyyaml
+
+# DB connectors — install only what your stack needs
+sqlalchemy>=2.0
+psycopg2-binary          # PostgreSQL / AWS RDS Postgres
+snowflake-sqlalchemy     # Snowflake
+snowflake-connector-python
+pymysql                  # MySQL / AWS RDS MySQL
+# pyodbc                 # SQL Server (requires ODBC driver installed on OS)

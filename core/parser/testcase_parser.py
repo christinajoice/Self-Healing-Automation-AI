@@ -21,7 +21,9 @@ def parse_testcase_file(file_path: str) -> List[Dict]:
     # Normalize data
     df = df.fillna("")
     df["Action"] = df["Action"].str.lower().str.strip()
-    df["Target"] = df["Target"].str.lower().str.strip()
+    # Keep Target casing as-is — it is used as the cache key in locators.json.
+    # Lowercasing would cause cache misses on every run.
+    df["Target"] = df["Target"].str.strip()
 
     testcases = {}
 
