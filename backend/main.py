@@ -25,6 +25,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from core.execution.executor import TestExecutor
+from core.db.profile_loader import (
+    list_profiles,
+    save_uploaded_profiles,
+    load_profiles,
+)
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -101,6 +106,7 @@ async def upload_testcase(
     base_url: str = Form(...),
     username: str = Form(None),
     password: str = Form(None),
+    db_profile: str = Form(None),
 ):
     # 🔹 Execution ID
     execution_id = f"exec_{uuid.uuid4().hex}"
@@ -204,6 +210,7 @@ async def upload_testcase(
         username,
         password,
         cancel_flag,
+        db_profile,
     )
 
     return {
@@ -239,6 +246,63 @@ def get_execution_status(execution_id: str):
     )
 
 # --------------------------------------------------
+# 🔹 DB Profile Management
+# --------------------------------------------------
+
+@app.get("/db_profiles")
+def get_db_profiles():
+    """Return the list of configured DB profile names."""
+    try:
+        profiles = list_profiles()
+        return {"profiles": profiles}
+    except Exception as e:
+        return {"profiles": [], "error": str(e)}
+
+
+@app.post("/upload_db_config")
+async def upload_db_config(file: UploadFile = File(...)):
+    """
+    Upload a db_profiles.yaml file.
+    Replaces the existing file and reloads profiles immediately.
+    No server restart needed.
+    """
+    if not file.filename.endswith((".yaml", ".yml")):
+        raise HTTPException(400, "Only .yaml / .yml files are accepted")
+
+    content = (await file.read()).decode("utf-8")
+
+    try:
+        save_uploaded_profiles(content)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    profiles = list_profiles()
+    return {
+        "message": "DB profiles loaded successfully",
+        "profiles": profiles,
+    }
+
+
+@app.post("/test_db_connection/{profile_name}")
+def test_db_connection(profile_name: str):
+    """Test connectivity for a named DB profile."""
+    try:
+        from core.db.profile_loader import get_profile
+        from core.db.connector import get_connector
+        profile = get_profile(profile_name)
+        conn = get_connector(profile)
+        ok = conn.test()
+        conn.close()
+        if ok:
+            return {"profile": profile_name, "status": "OK"}
+        raise HTTPException(500, f"Connection test failed for profile '{profile_name}'")
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+# --------------------------------------------------
 # 🔹 Reports (UNCHANGED)
 # --------------------------------------------------
 @app.get("/reports")
@@ -265,6 +329,7 @@ async def run_testcase_background(
     username: str,
     password: str,
     cancel_flag: asyncio.Event = None,
+    db_profile: str = None,
 ):
     try:
         update_status(
@@ -284,6 +349,7 @@ async def run_testcase_background(
             if username or password
             else None,
             cancel_flag=cancel_flag,
+            db_profile=db_profile or None,
         )
 
         final_state = "CANCELLED" if (cancel_flag and cancel_flag.is_set()) else "COMPLETED"

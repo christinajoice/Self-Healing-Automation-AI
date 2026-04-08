@@ -149,6 +149,127 @@
                 "failures": 0,
                 "last_used": "2026-03-25T10:34:07.508371+00:00"
             }
+        ],
+        "Username input text field": [
+            {
+                "strategy": "css",
+                "value": "input[name='username']",
+                "confidence": 0.9,
+                "failures": 0,
+                "last_used": "2026-04-08T13:22:48.936109+00:00"
+            }
+        ],
+        "Password input text field": [
+            {
+                "strategy": "css",
+                "value": "input[name='password']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-04-08T13:22:57.265680+00:00"
+            }
+        ],
+        "Login button": [
+            {
+                "strategy": "css",
+                "value": "button:has-text('LOGIN')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-04-08T13:23:05.752070+00:00"
+            }
+        ],
+        "Network Adequacy": [
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:41:58.983206+00:00"
+            }
+        ],
+        "Network Group": [
+            {
+                "strategy": "css",
+                "value": "[title='Network Adequacy']",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:02.860220+00:00"
+            }
+        ],
+        "column menu icon @ Filing Type": [
+            {
+                "strategy": "css",
+                "value": "[id=':r26:']",
+                "hover_before": "[role='columnheader']:has-text('Filing Type')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:03.772050+00:00"
+            }
+        ],
+        "Filter": [
+            {
+                "strategy": "css",
+                "value": "li:has-text('Filter')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:15.596228+00:00"
+            }
+        ],
+        "filter value text field": [
+            {
+                "strategy": "get_by_placeholder",
+                "value": "Filter value",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:16.376783+00:00"
+            }
+        ],
+        "apply": [
+            {
+                "strategy": "css",
+                "value": "button:has-text('Apply')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:16.541524+00:00"
+            }
+        ],
+        "column menu icon @ Network Group": [
+            {
+                "strategy": "css",
+                "value": "[id=':r2o:']",
+                "hover_before": "[role='columnheader']:has-text('Network Group')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:14.264184+00:00"
+            }
+        ],
+        "action icon @ PATHWAY": [
+            {
+                "strategy": "css",
+                "value": "svg[data-testid='OpenInNewIcon']",
+                "force": true,
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:29.595115+00:00"
+            }
+        ],
+        "button @ View By": [
+            {
+                "strategy": "css",
+                "value": "[role='row']:has-text('View By') svg[data-testid='ExpandMoreIcon']",
+                "hover_before": "[role='row']:has-text('View By')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:31.833132+00:00"
+            }
+        ],
+        "Specialty button": [
+            {
+                "strategy": "css",
+                "value": "button:has-text('Specialty')",
+                "confidence": 1.0,
+                "failures": 0,
+                "last_used": "2026-03-25T10:42:33.433305+00:00"
+            }
         ]
     },
     "https://mcheck.elixruat.awsdns.internal.das/network-adequacy": {

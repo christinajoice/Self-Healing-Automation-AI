@@ -1,0 +1,52 @@
+# =============================================================================
+# DB Connection Profiles
+# =============================================================================
+# This file is loaded once at server start and hot-reloaded when changed.
+# It is gitignored — never commit credentials to source control.
+#
+# Alternatively, set environment variables:
+#   DB_<PROFILE_UPPER>_TYPE, DB_<PROFILE_UPPER>_HOST, etc.
+#   e.g.  DB_HILABS_RDS_TYPE=postgres  DB_HILABS_RDS_HOST=my-rds.amazonaws.com
+#
+# Values can reference environment variables:  password: ${DB_PASSWORD}
+# =============================================================================
+
+profiles:
+
+  # ── PostgreSQL / AWS RDS ───────────────────────────────────────────────
+  hilabs_rds:
+    type: postgres
+    host: your-rds-endpoint.us-east-1.rds.amazonaws.com
+    port: 5432
+    database: your_database_name
+    username: your_username
+    password: ${DB_PASSWORD}          # set DB_PASSWORD in your .env
+
+  # ── Snowflake ──────────────────────────────────────────────────────────
+  hilabs_snowflake:
+    type: snowflake
+    account: your-org.your-account    # e.g. myorg-myaccount
+    warehouse: COMPUTE_WH
+    database: YOUR_DATABASE
+    schema: PUBLIC
+    username: your_username
+    password: ${SNOWFLAKE_PASSWORD}   # set SNOWFLAKE_PASSWORD in your .env
+    role: ANALYST                     # optional: Snowflake role
+
+  # ── MySQL / AWS RDS MySQL ──────────────────────────────────────────────
+  # example_mysql:
+  #   type: mysql
+  #   host: your-mysql-host.rds.amazonaws.com
+  #   port: 3306
+  #   database: your_database
+  #   username: your_username
+  #   password: ${MYSQL_PASSWORD}
+
+  # ── SQL Server ─────────────────────────────────────────────────────────
+  # example_sqlserver:
+  #   type: mssql
+  #   host: your-sqlserver-host
+  #   port: 1433
+  #   database: your_database
+  #   username: your_username
+  #   password: ${MSSQL_PASSWORD}

@@ -1,0 +1,43 @@
+# queries/example_gaps_summary.yaml
+# Configuration for example_gaps_summary.sql
+#
+# Rename to  gaps_summary.yaml  when renaming the SQL file.
+
+# ── SQL parameter sources ─────────────────────────────────────────────────
+# Tells the framework where to read each :param value from the current page.
+params:
+  network_group:
+    read_from: text                        # read innerText of a CSS element
+    selector: "[data-filter='network']"    # update to match your UI selector
+    default: ""
+
+  plan_type:
+    read_from: text
+    selector: "[data-filter='plan-type']"
+    default: ""
+
+  # Example: read from URL query string  (?state=INDIANA)
+  # state:
+  #   read_from: url_param
+  #   param_name: state
+  #   default: ""
+
+  # Example: static value — always the same regardless of page state
+  # report_date:
+  #   read_from: static
+  #   value: "2024-01-01"
+
+# ── Column mapping  (DB column → UI column header) ────────────────────────
+# Only needed when names differ. Omit if DB and UI use the same names.
+column_map:
+  state_name: "State"       # DB column 'state_name' → UI header 'State'
+  gaps:       "Gaps"        # DB column 'gaps'       → UI header 'Gaps'
+
+# ── Key column ────────────────────────────────────────────────────────────
+# The DB column used to match UI rows to DB rows.
+# Auto-detected if not set (looks for 'name', 'state', 'id', etc.)
+key_column: state_name
+
+# ── Numeric tolerance ─────────────────────────────────────────────────────
+# Allow this much difference for numeric columns (handles rounding).
+tolerance: 1
